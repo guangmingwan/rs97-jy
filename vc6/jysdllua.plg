@@ -1,0 +1,57 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: jysdllua - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP51.tmp" with contents
+[
+/nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FR"Release/" /Fp"Release/jysdllua.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"D:\zg\jy\jy2\JY_SDL_Lua_0.6_release\src\charset.c"
+"D:\zg\jy\jy2\JY_SDL_Lua_0.6_release\src\jymain.c"
+"D:\zg\jy\jy2\JY_SDL_Lua_0.6_release\src\luafun.c"
+"D:\zg\jy\jy2\JY_SDL_Lua_0.6_release\src\mainmap.c"
+"D:\zg\jy\jy2\JY_SDL_Lua_0.6_release\src\piccache.c"
+"D:\zg\jy\jy2\JY_SDL_Lua_0.6_release\src\sdlfun.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP51.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP52.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /incremental:no /pdb:"Release/jysdllua.pdb" /machine:I386 /out:"Release/jysdllua.exe" 
+.\Release\charset.obj
+.\Release\jymain.obj
+.\Release\luafun.obj
+.\Release\mainmap.obj
+.\Release\piccache.obj
+.\Release\sdlfun.obj
+..\Lua\lib\lua5.1.lib
+..\SDL\lib\smpeg.lib
+..\SDL\lib\SDL_image.lib
+..\SDL\lib\SDL_mixer.lib
+..\SDL\lib\SDL_ttf.lib
+..\SDL\lib\SDLmain.lib
+..\SDL\lib\SDL.lib
+]
+Creating command line "link.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP52.tmp"
+<h3>Output Window</h3>
+Compiling...
+charset.c
+jymain.c
+luafun.c
+mainmap.c
+piccache.c
+sdlfun.c
+Linking...
+Creating command line "bscmake.exe /nologo /o"Release/jysdllua.bsc"  .\Release\charset.sbr .\Release\jymain.sbr .\Release\luafun.sbr .\Release\mainmap.sbr .\Release\piccache.sbr .\Release\sdlfun.sbr"
+Creating browse info file...
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+jysdllua.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
