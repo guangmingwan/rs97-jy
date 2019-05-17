@@ -56,10 +56,8 @@ function Menu_System_new()
 
     local r=ShowMenu(menu,6,0,CC.MainSubMenuX,CC.MainSubMenuY,0,0,1,1,CC.DefaultFont,C_ORANGE, C_WHITE);
     if r == 0 then
-        Cls(CC.MainSubMenuX,CC.MainSubMenuY,CC.ScreenW,CC.ScreenH);
         return 0;
     elseif r<0 then   --要退出全部菜单，
-        Cls();
         return 1;
  	end
 end
@@ -216,7 +214,8 @@ function  SetRevivePosition(id)
 	War_CalMoveStep(WAR.CurID,100,0);   --计算移动步数 假设最大100步
 	for i=0,CC.WarWidth-1 do
 		for j=0,CC.WarHeight-1 do
-			local dest=Byte.get16(WAR.Map3,(j*CC.WarWidth+i)*2);
+			--local dest=Byte.get16(WAR.Map3,(j*CC.WarWidth+i)*2);
+			local dest=GetWarMap(i,j,3); -- fix by http://www.txdx.net/viewthread.php?tid=422484&page=7&authorid=329645
 			if dest>0 and dest <128 then
 				if minDest>dest then
 					minDest=dest;

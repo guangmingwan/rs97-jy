@@ -1,27 +1,34 @@
  
-// ¶ÁÈ¡idx/grpµÄÌùÍ¼ÎÄ¼ş¡£
-// ÎªÌá¸ßËÙ¶È£¬²ÉÓÃ»º´æ·½Ê½¶ÁÈ¡¡£°Ñidx/grp¶ÁÈëÄÚ´æ£¬È»ºó¶¨ÒåÈô¸É¸ö»º´æ±íÃæ
-// ¾­³£·ÃÎÊµÄpic·ÅÔÚ»º´æ±íÃæÖĞ
+// è¯»å–idx/grpçš„è´´å›¾æ–‡ä»¶ã€‚
+// ä¸ºæé«˜é€Ÿåº¦ï¼Œé‡‡ç”¨ç¼“å­˜æ–¹å¼è¯»å–ã€‚æŠŠidx/grpè¯»å…¥å†…å­˜ï¼Œç„¶åå®šä¹‰è‹¥å¹²ä¸ªç¼“å­˜è¡¨é¢
+// ç»å¸¸è®¿é—®çš„picæ”¾åœ¨ç¼“å­˜è¡¨é¢ä¸­
 
-
+#include <stdlib.h>
 #include "jymain.h"
 
 static struct PicFileCache pic_file[PIC_FILE_NUM];     
 
-LIST_HEAD(cache_head);             //¶¨ÒåcacheÁ´±íÍ·
+LIST_HEAD(cache_head);             //å®šä¹‰cacheé“¾è¡¨å¤´
 
-static int currentCacheNum=0;             // µ±Ç°Ê¹ÓÃµÄcacheÊı
+static int currentCacheNum=0;             // å½“å‰ä½¿ç”¨çš„cacheæ•°
 
-static Uint32 m_color32[256];    // 256µ÷É«°å
+static Uint32 m_color32[256];    // 256è°ƒè‰²æ¿
 
-extern int g_MAXCacheNum;                   // ×î´óCache¸öÊı
-extern Uint32 g_MaskColor32;      // Í¸Ã÷É«
+extern int g_MAXCacheNum;                   // æœ€å¤§Cacheä¸ªæ•°
+extern Uint32 g_MaskColor32;      // é€æ˜è‰²
+
+extern SDL_Surface* g_Surface;        // æ¸¸æˆä½¿ç”¨çš„è§†é¢‘è¡¨é¢
+extern int g_Rotate;
 extern int g_ScreenW ;
 extern int g_ScreenH ;
 
+extern int g_PreLoadPicGrp;
+
+int g_EnableRLE=0;
+
 int CacheFailNum=0;
 
-// ³õÊ¼»¯CacheÊı¾İ¡£ÓÎÏ·¿ªÊ¼Ê±µ÷ÓÃ
+// åˆå§‹åŒ–Cacheæ•°æ®ã€‚æ¸¸æˆå¼€å§‹æ—¶è°ƒç”¨
 int Init_Cache()
 {
     int i;
@@ -29,27 +36,28 @@ int Init_Cache()
         pic_file[i].num =0;
         pic_file[i].idx =NULL;
         pic_file[i].grp=NULL;
+        pic_file[i].fp=NULL;
         pic_file[i].pcache=NULL;
     }
     return 0;
 }
 
-// ³õÊ¼»¯ÌùÍ¼cacheĞÅÏ¢
-// PalletteFilename Îª256µ÷É«°åÎÄ¼ş¡£µÚÒ»´Îµ÷ÓÃÊ±ÔØÈë
-//                  Îª¿Õ×Ö·û´®Ôò±íÊ¾ÖØĞÂÇå¿ÕÌùÍ¼cacheĞÅÏ¢¡£ÔÚÖ÷µØÍ¼/³¡¾°/Õ½¶·ÇĞ»»Ê±µ÷ÓÃ
+// åˆå§‹åŒ–è´´å›¾cacheä¿¡æ¯
+// PalletteFilename ä¸º256è°ƒè‰²æ¿æ–‡ä»¶ã€‚ç¬¬ä¸€æ¬¡è°ƒç”¨æ—¶è½½å…¥
+//                  ä¸ºç©ºå­—ç¬¦ä¸²åˆ™è¡¨ç¤ºé‡æ–°æ¸…ç©ºè´´å›¾cacheä¿¡æ¯ã€‚åœ¨ä¸»åœ°å›¾/åœºæ™¯/æˆ˜æ–—åˆ‡æ¢æ—¶è°ƒç”¨
 int JY_PicInit(char *PalletteFilename)
 {
 
     struct list_head *pos,*p;
     int i;
  
-	LoadPallette(PalletteFilename);   //ÔØÈëµ÷É«°å
+	LoadPallette(PalletteFilename);   //è½½å…¥è°ƒè‰²æ¿
 
-    //Èç¹ûÁ´±í²»Îª¿Õ£¬É¾³ıÈ«²¿Á´±í
+    //å¦‚æœé“¾è¡¨ä¸ä¸ºç©ºï¼Œåˆ é™¤å…¨éƒ¨é“¾è¡¨
     list_for_each_safe(pos,p,&cache_head){
         struct CacheNode *tmp= list_entry(pos, struct CacheNode , list);
         if(tmp->s!=NULL) 
-			SDL_FreeSurface(tmp->s);       //É¾³ı±íÃæ
+			SDL_FreeSurface(tmp->s);       //åˆ é™¤è¡¨é¢
 		list_del(pos);		 
 		SafeFree(tmp);
 	}
@@ -59,6 +67,10 @@ int JY_PicInit(char *PalletteFilename)
         SafeFree(pic_file[i].idx);
         SafeFree(pic_file[i].grp);
         SafeFree(pic_file[i].pcache);
+        if(pic_file[i].fp){
+            fclose(pic_file[i].fp);
+            pic_file[i].fp=NULL;
+        }
     }
 
     currentCacheNum=0; 
@@ -67,30 +79,29 @@ int JY_PicInit(char *PalletteFilename)
 
 }
 
-// ¼ÓÔØÎÄ¼şĞÅÏ¢
-// filename ÎÄ¼şÃû  ²»ĞèÒªºó×º£¬idx/grp
-// id  0-9
-int JY_PicLoadFile(const char*filename, int id)
+// åŠ è½½æ–‡ä»¶ä¿¡æ¯
+// filename æ–‡ä»¶å 
+// id  0 - PIC_FILE_NUM-1
+int JY_PicLoadFile(const char*idxfilename, const char* grpfilename, int id)
 {
     int i;
     struct CacheNode *tmpcache;
-    char str[255];
     FILE *fp;
-    int count;
 
-    if(id<0 || id>=PIC_FILE_NUM){  // id³¬³ö·¶Î§
+
+    if(id<0 || id>=PIC_FILE_NUM){  // idè¶…å‡ºèŒƒå›´
         return 1;
 	}
 
-	if(pic_file[id].pcache){        //ÊÍ·Åµ±Ç°ÎÄ¼şÕ¼ÓÃµÄ¿Õ¼ä£¬²¢ÇåÀícache
+	if(pic_file[id].pcache){        //é‡Šæ”¾å½“å‰æ–‡ä»¶å ç”¨çš„ç©ºé—´ï¼Œå¹¶æ¸…ç†cache
 		int i;
-		for(i=0;i<pic_file[id].num;i++){   //Ñ­»·È«²¿ÌùÍ¼£¬
+		for(i=0;i<pic_file[id].num;i++){   //å¾ªç¯å…¨éƒ¨è´´å›¾ï¼Œ
             tmpcache=pic_file[id].pcache[i];
-            if(tmpcache){       // ¸ÃÌùÍ¼ÓĞ»º´æÔòÉ¾³ı
+            if(tmpcache){       // è¯¥è´´å›¾æœ‰ç¼“å­˜åˆ™åˆ é™¤
 			    if(tmpcache->s!=NULL) 
-				    SDL_FreeSurface(tmpcache->s);       //É¾³ı±íÃæ
-			    list_del(&tmpcache->list);              //É¾³ıÁ´±í
-			    SafeFree(tmpcache);                  //ÊÍ·ÅcacheÄÚ´æ
+				    SDL_FreeSurface(tmpcache->s);       //åˆ é™¤è¡¨é¢
+			    list_del(&tmpcache->list);              //åˆ é™¤é“¾è¡¨
+			    SafeFree(tmpcache);                  //é‡Šæ”¾cacheå†…å­˜
                 currentCacheNum--;
             }
 		}
@@ -98,49 +109,56 @@ int JY_PicLoadFile(const char*filename, int id)
     }
     SafeFree(pic_file[id].idx);
     SafeFree(pic_file[id].grp);
+    if(pic_file[id].fp){
+        fclose(pic_file[id].fp);
+        pic_file[id].fp=NULL;
+    }
 
-    // ¶ÁÈ¡idxÎÄ¼ş
-    sprintf(str,"%s.idx",filename);
-	
-	pic_file[id].num =FileLength(str)/4;    //idx ÌùÍ¼¸öÊı
+
+    // è¯»å–idxæ–‡ä»¶
+
+	pic_file[id].num =FileLength(idxfilename)/4;    //idx è´´å›¾ä¸ªæ•°
     pic_file[id].idx =(int *)malloc((pic_file[id].num+1)*4);
     if(pic_file[id].idx ==NULL){
-		fprintf(stderr,"JY_PicLoadFile: cannot malloc idx memory!\n");
+		JY_Error("JY_PicLoadFile: cannot malloc idx memory!\n");
 		return 1;
     }
-		//¶ÁÈ¡ÌùÍ¼idxÎÄ¼ş
-	if((fp=fopen(str,"rb"))==NULL){
-        fprintf(stderr,"JY_PicLoadFile: idx file not open ---%s",str);
+		//è¯»å–è´´å›¾idxæ–‡ä»¶
+	if((fp=fopen(idxfilename,"rb"))==NULL){
+        JY_Error("JY_PicLoadFile: idx file not open ---%s",idxfilename);
 		return 1;
 	}
 
-    count=fread(&pic_file[id].idx[1],4,pic_file[id].num,fp);
+    fread(&pic_file[id].idx[1],4,pic_file[id].num,fp);
     fclose(fp);
  
     pic_file[id].idx[0]=0;
 
-    //¶ÁÈ¡grpÎÄ¼ş
-    sprintf(str,"%s.grp",filename);
+    //è¯»å–grpæ–‡ä»¶
+    pic_file[id].filelength=FileLength(grpfilename);
 
-    pic_file[id].filelength=FileLength(str);
-
-    pic_file[id].grp =(unsigned char*)malloc(pic_file[id].filelength);
-    if(pic_file[id].grp ==NULL){
-		fprintf(stderr,"JY_PicLoadFile: cannot malloc grp memory!\n");
-		return 1;
-    }
-		//¶ÁÈ¡ÌùÍ¼grpÎÄ¼ş
-	if((fp=fopen(str,"rb"))==NULL){
-        fprintf(stderr,"JY_PicLoadFile: grp file not open ---%s",str);
+		//è¯»å–è´´å›¾grpæ–‡ä»¶
+	if((fp=fopen(grpfilename,"rb"))==NULL){
+        JY_Error("JY_PicLoadFile: grp file not open ---%s",grpfilename);
 		return 1;
 	}
-    count=fread(pic_file[id].grp,1,pic_file[id].filelength,fp);
-    fclose(fp);
+    if(g_PreLoadPicGrp==1){   //grpæ–‡ä»¶è¯»å…¥å†…å­˜
+        pic_file[id].grp =(unsigned char*)malloc(pic_file[id].filelength);
+        if(pic_file[id].grp ==NULL){
+		    JY_Error("JY_PicLoadFile: cannot malloc grp memory!\n");
+		    return 1;
+        }
+        fread(pic_file[id].grp,1,pic_file[id].filelength,fp);
+        fclose(fp);
+    }
+    else{
+        pic_file[id].fp=fp;
+    }
 
 
     pic_file[id].pcache =(struct CacheNode **)malloc(pic_file[id].num*sizeof(struct CacheNode *));
     if(pic_file[id].pcache ==NULL){
-		fprintf(stderr,"JY_PicLoadFile: cannot malloc pcache memory!\n");
+		JY_Error("JY_PicLoadFile: cannot malloc pcache memory!\n");
 		return 1;
     }
   	
@@ -150,79 +168,93 @@ int JY_PicLoadFile(const char*filename, int id)
     return 0;
 } 
 
-// ¼ÓÔØ²¢ÏÔÊ¾ÌùÍ¼
-// fileid        ÌùÍ¼ÎÄ¼şid 
-// picid     ÌùÍ¼±àºÅ
-// x,y       ÏÔÊ¾Î»ÖÃ
-//  flag ²»Í¬bit´ú±í²»Í¬º¬Òå£¬È±Ê¡¾ùÎª0
-//  B0    0 ¿¼ÂÇÆ«ÒÆxoff£¬yoff¡£=1 ²»¿¼ÂÇÆ«ÒÆÁ¿
-//  B1    0     , 1 Óë±³¾°alpla »ìºÏÏÔÊ¾, value ÎªalphaÖµ(0-256), 0±íÊ¾Í¸Ã÷
-//  B2            1 È«ºÚ
-//  B3            1 È«°×
-//  value °´ÕÕflag¶¨Òå£¬ÎªalphaÖµ£¬ 
+// åŠ è½½å¹¶æ˜¾ç¤ºè´´å›¾
+// fileid        è´´å›¾æ–‡ä»¶id 
+// picid     è´´å›¾ç¼–å·
+// x,y       æ˜¾ç¤ºä½ç½®
+//  flag ä¸åŒbitä»£è¡¨ä¸åŒå«ä¹‰ï¼Œç¼ºçœå‡ä¸º0
+//  B0    0 è€ƒè™‘åç§»xoffï¼Œyoffã€‚=1 ä¸è€ƒè™‘åç§»é‡
+//  B1    0     , 1 ä¸èƒŒæ™¯alpla æ··åˆæ˜¾ç¤º, value ä¸ºalphaå€¼(0-256), 0è¡¨ç¤ºé€æ˜
+//  B2            1 å…¨é»‘
+//  B3            1 å…¨ç™½
+//  value æŒ‰ç…§flagå®šä¹‰ï¼Œä¸ºalphaå€¼ï¼Œ 
 
 int JY_LoadPic(int fileid, int picid, int x,int y,int flag,int value)
 {
  
     struct CacheNode *newcache,*tmpcache;
-	int find=0;
- 
- 	picid=picid/2;
+	int xnew,ynew;
 
-	if(fileid<0 || fileid >=PIC_FILE_NUM || picid<0 || picid>=pic_file[fileid].num )    // ²ÎÊı´íÎó
+	picid=picid/2;
+
+	if(fileid<0 || fileid >=PIC_FILE_NUM || picid<0 || picid>=pic_file[fileid].num )    // å‚æ•°é”™è¯¯
 		return 1;
 
-	if(pic_file[fileid].pcache[picid]==NULL){   //µ±Ç°ÌùÍ¼Ã»ÓĞ¼ÓÔØ
-		//Éú³ÉcacheÊı¾İ
+	if(pic_file[fileid].pcache[picid]==NULL){   //å½“å‰è´´å›¾æ²¡æœ‰åŠ è½½
+		//ç”Ÿæˆcacheæ•°æ®
 		newcache=(struct CacheNode *)malloc(sizeof(struct CacheNode));
 		if(newcache==NULL){
-			fprintf(stderr,"JY_LoadPic: cannot malloc newcache memory!\n");
+			JY_Error("JY_LoadPic: cannot malloc newcache memory!\n");
 			return 1;
 		}
-
-		newcache->s=LoadPic(fileid,picid,&newcache->xoff,&newcache->yoff);
+        
         newcache->id =picid;
 		newcache->fileid =fileid;
+		LoadPic(fileid,picid,newcache);
+
         pic_file[fileid].pcache[picid]=newcache;
 
-        if(currentCacheNum<g_MAXCacheNum){  //cacheÃ»Âú
-            list_add(&newcache->list ,&cache_head);    //¼ÓÔØµ½±íÍ·
+        if(currentCacheNum<g_MAXCacheNum){  //cacheæ²¡æ»¡
+            list_add(&newcache->list ,&cache_head);    //åŠ è½½åˆ°è¡¨å¤´
             currentCacheNum=currentCacheNum+1;
  		}
-		else{   //cache ÒÑÂú
-            tmpcache=list_entry(cache_head.prev, struct CacheNode , list);  //×îºóÒ»¸öcache
+		else{   //cache å·²æ»¡
+            tmpcache=list_entry(cache_head.prev, struct CacheNode , list);  //æœ€åä¸€ä¸ªcache
             pic_file[tmpcache->fileid].pcache[tmpcache->id]=NULL;
 			if(tmpcache->s!=NULL) 
-				SDL_FreeSurface(tmpcache->s);       //É¾³ı±íÃæ
+				SDL_FreeSurface(tmpcache->s);       //åˆ é™¤è¡¨é¢
 			list_del(&tmpcache->list);
 			SafeFree(tmpcache);
 			
-			list_add(&newcache->list ,&cache_head);    //¼ÓÔØµ½±íÍ·
+			list_add(&newcache->list ,&cache_head);    //åŠ è½½åˆ°è¡¨å¤´
             CacheFailNum++;
             if(CacheFailNum % 100 ==1)
                 JY_Debug("Pic Cache is full!");
         }
     }
-	else{   //ÒÑ¼ÓÔØÌùÍ¼
+	else{   //å·²åŠ è½½è´´å›¾
  		newcache=pic_file[fileid].pcache[picid];
-		list_del(&newcache->list);    //°ÑÕâ¸öcache´ÓÁ´±íÕª³ö
-		list_add(&newcache->list ,&cache_head);    //ÔÙ²åÈëµ½±íÍ·
+		list_del(&newcache->list);    //æŠŠè¿™ä¸ªcacheä»é“¾è¡¨æ‘˜å‡º
+		list_add(&newcache->list ,&cache_head);    //å†æ’å…¥åˆ°è¡¨å¤´
 	}
 
-	if(flag & 0x00000001)
-        BlitSurface(newcache->s , x,y,flag,value);
-	else
-        BlitSurface(newcache->s , x - newcache->xoff,y - newcache->yoff,flag,value);
+	if(newcache->s==NULL){   //è´´å›¾ä¸ºç©ºï¼Œç›´æ¥é€€å‡º
+		return 1; 
+	}
+
+	if(flag & 0x00000001){   
+		xnew=x;
+		ynew=y;
+	}
+	else{
+		xnew=x - newcache->xoff;
+		ynew=y - newcache->yoff;
+	}
  
+	if(g_Rotate==0){
+         BlitSurface(newcache->s , xnew,ynew,flag,value);
+	}
+	else{
+        BlitSurface(newcache->s , g_ScreenH-ynew-newcache->s->w ,xnew,flag,value);
+	}
  
     return 0;
 }
 
-// ¼ÓÔØÌùÍ¼µ½±íÃæ
-static SDL_Surface *LoadPic(int fileid,int picid, int *xoffset,int *yoffset)
+// åŠ è½½è´´å›¾åˆ°è¡¨é¢
+static int LoadPic(int fileid,int picid, struct CacheNode *cache)
 {
 
- 
 	SDL_RWops *fp_SDL;
 	int id1,id2;
 	int datalong;
@@ -230,17 +262,15 @@ static SDL_Surface *LoadPic(int fileid,int picid, int *xoffset,int *yoffset)
 
     SDL_Surface *tmpsurf=NULL;
 
-    SDL_Surface *surf=NULL;
-
     if(pic_file[fileid].idx ==NULL){
-        fprintf(stderr,"LoadPic: fileid %d can not load?\n",fileid);
-        return NULL;
+        JY_Error("LoadPic: fileid %d can not load?\n",fileid);
+        return 1;
     }
     id1=pic_file[fileid].idx[picid];
     id2=pic_file[fileid].idx[picid+1];
 
 
-	// ´¦ÀíÒ»Ğ©ÌØÊâÇé¿ö£¬°´ÕÕĞŞ¸ÄÆ÷ÖĞµÄ´úÂë
+	// å¤„ç†ä¸€äº›ç‰¹æ®Šæƒ…å†µï¼ŒæŒ‰ç…§ä¿®æ”¹å™¨ä¸­çš„ä»£ç 
 	if(id1<0)
 		datalong=0;
  
@@ -251,60 +281,85 @@ static SDL_Surface *LoadPic(int fileid,int picid, int *xoffset,int *yoffset)
 
  
 	if(datalong>0){
-		//¶ÁÈ¡ÌùÍ¼grpÎÄ¼ş£¬µÃµ½Ô­Ê¼Êı¾İ        
-        p=pic_file[fileid].grp+id1;
-        fp_SDL=SDL_RWFromMem(p,datalong);
-		if(IMG_isPNG(fp_SDL)==0){
-	        short width,height,xoff,yoff;
-            width =*(short*)p;
-            height=*(short*)(p+2);
-            xoff=*(short*)(p+4);
-            yoff=*(short*)(p+6);
-			data=p+8;
+		//è¯»å–è´´å›¾grpæ–‡ä»¶ï¼Œå¾—åˆ°åŸå§‹æ•°æ®   
+        if(g_PreLoadPicGrp==1){         //æœ‰é¢„è¯»ï¼Œä»å†…å­˜ä¸­è¯»æ•°æ®
+            data=pic_file[fileid].grp+id1;
+            p=NULL;
+        }
+        else{       //æ²¡æœ‰é¢„è¯»ï¼Œä»æ–‡ä»¶ä¸­è¯»å–
+            fseek(pic_file[fileid].fp,id1,SEEK_SET);
+            data=(unsigned char *)malloc(datalong);
+            p=data;
+            fread(data,1,datalong,pic_file[fileid].fp);
+        }
 
-			surf=CreatePicSurface32(data,width,height,datalong-8);
-
-			*xoffset =xoff;
-			*yoffset =yoff;
+        fp_SDL=SDL_RWFromMem(data,datalong);
+        if(IMG_isPNG(fp_SDL)==0){
+			int w,h;
+            w =*(short*)data;
+            h=*(short*)(data+2);
+            cache->xoff =*(short*)(data+4);
+            cache->yoff=*(short*)(data+6);
+			cache->s=CreatePicSurface32(data+8,w,h,datalong-8);
+	
 		}
-        else{      //¶ÁÈ¡png¸ñÊ½
+        else{      //è¯»å–pngæ ¼å¼
             tmpsurf=IMG_LoadPNG_RW(fp_SDL);
 	        if(tmpsurf==NULL){
-		        fprintf(stderr,"LoadPic: cannot create SDL_Surface tmpsurf!\n");
+		        JY_Error("LoadPic: cannot create SDL_Surface tmpsurf!\n");
 	        }
-            *xoffset=tmpsurf->w/2;
-            *yoffset=tmpsurf->h/2;
-            surf=tmpsurf;
+            cache->xoff=tmpsurf->w/2;
+            cache->yoff=tmpsurf->h/2;
+			if(g_Rotate==0){
+                cache->s=tmpsurf;
+			}
+			else{
+				cache->s=RotateSurface(tmpsurf);
+				SDL_FreeSurface(tmpsurf);   
+			}
  		}
         SDL_FreeRW(fp_SDL);
+        SafeFree(p);
+ 
+
     }
     else{
-
+		cache->s=NULL;
+		cache->xoff=0;
+		cache->yoff=0;
 	}
 
-  
-
-    return surf;
+    return 0;
 }
 
 
-//µÃµ½ÌùÍ¼´óĞ¡
-int JY_GetPicXY(int fileid, int picid, int *w,int *h)
+//å¾—åˆ°è´´å›¾å¤§å°
+int JY_GetPicXY(int fileid, int picid, int *w,int *h,int *xoff,int *yoff)
 {
     struct CacheNode *newcache;
-	int r=JY_LoadPic(fileid, picid, g_ScreenW+1,g_ScreenH+1,1,0);   //¼ÓÔØÌùÍ¼µ½¿´²»¼ûµÄÎ»ÖÃ
+	int r=JY_LoadPic(fileid, picid, g_ScreenW+1,g_ScreenH+1,1,0);   //åŠ è½½è´´å›¾åˆ°çœ‹ä¸è§çš„ä½ç½®
 
     *w=0;
 	*h=0;
+	*xoff=0;
+	*yoff=0;
 
 	if(r!=0)
 		return 1;
 
     newcache=pic_file[fileid].pcache[picid/2];
 
-    if(newcache->s){      // ÒÑÓĞ£¬ÔòÖ±½ÓÏÔÊ¾
-        *w= newcache->s->w;
-        *h= newcache->s->h;
+    if(newcache->s){      // å·²æœ‰ï¼Œåˆ™ç›´æ¥æ˜¾ç¤º
+		if(g_Rotate==0){
+            *w= newcache->s->w;
+            *h= newcache->s->h;
+		}
+		else{
+            *w= newcache->s->h;
+            *h= newcache->s->w;
+		}
+		*xoff=newcache->xoff;
+		*yoff=newcache->yoff;
 	}
 
 	return 0;
@@ -313,10 +368,10 @@ int JY_GetPicXY(int fileid, int picid, int *w,int *h)
 
 
 
-//°´ÕÕÔ­À´ÓÎÏ·µÄRLE¸ñÊ½´´½¨±íÃæ
+//æŒ‰ç…§åŸæ¥æ¸¸æˆçš„RLEæ ¼å¼åˆ›å»ºè¡¨é¢
 static SDL_Surface* CreatePicSurface32(unsigned char *data, int w,int h,int datalong)
 {    
-	int x1=0,y1=0,p=0;    
+	int p=0;    
 	int i,j;
 	int yoffset;
 	int row;
@@ -328,7 +383,7 @@ static SDL_Surface* CreatePicSurface32(unsigned char *data, int w,int h,int data
 
     data32=(Uint32 *)malloc(w*h*4);
 	if(data32==NULL){
-		fprintf(stderr,"CreatePicSurface32: cannot malloc data32 memory!\n");
+		JY_Error("CreatePicSurface32: cannot malloc data32 memory!\n");
 		return NULL;
 	}
 
@@ -337,56 +392,66 @@ static SDL_Surface* CreatePicSurface32(unsigned char *data, int w,int h,int data
 
 	for(i=0;i<h;i++){
         yoffset=i*w;       
-        row=data[p];            // iĞĞÊı¾İ¸öÊı
+        row=data[p];            // iè¡Œæ•°æ®ä¸ªæ•°
 		start=p;
 		p++;
 		if(row>0){
-			x=0;                // iĞĞÄ¿Ç°ÁĞ
-            while(1){
-                x=x+data[p];    // iĞĞ¿Õ°×µã¸öÊı£¬Ìø¸öÍ¸Ã÷µã
-				if(x>=w)        // iĞĞ¿í¶Èµ½Í·£¬½áÊø
+			x=0;                // iè¡Œç›®å‰åˆ—
+            for(;;){
+                x=x+data[p];    // iè¡Œç©ºç™½ç‚¹ä¸ªæ•°ï¼Œè·³ä¸ªé€æ˜ç‚¹
+				if(x>=w)        // iè¡Œå®½åº¦åˆ°å¤´ï¼Œç»“æŸ
 					break;
 
 				p++;
-                solidnum=data[p];  // ²»Í¸Ã÷µã¸öÊı
+                solidnum=data[p];  // ä¸é€æ˜ç‚¹ä¸ªæ•°
                 p++;
 				for(j=0;j<solidnum;j++){
-                    data32[yoffset+x]=m_color32[data[p]];
+		            if(g_Rotate==0){
+                        data32[yoffset+x]=m_color32[data[p]];
+					}
+					else{
+                        data32[h-i-1+x*h]=m_color32[data[p]];
+					}
 					p++;
 					x++;
 				}
                 if(x>=w)
-					break;     // iĞĞ¿í¶Èµ½Í·£¬½áÊø
+					break;     // iè¡Œå®½åº¦åˆ°å¤´ï¼Œç»“æŸ
 				if(p-start>=row) 
-					break;    // iĞĞÃ»ÓĞÊı¾İ£¬½áÊø
+					break;    // iè¡Œæ²¡æœ‰æ•°æ®ï¼Œç»“æŸ
 			}
             if(p+1>=datalong) 
 				break;
 		}
 	}
     
- 
-    ps1=SDL_CreateRGBSurfaceFrom(data32,w,h,32,w*4,0xff0000,0xff00,0xff,0);  //´´½¨32Î»±íÃæ
-	if(ps1==NULL){
-		fprintf(stderr,"CreatePicSurface32: cannot create SDL_Surface ps1!\n");
+	if(g_Rotate==0){
+        ps1=SDL_CreateRGBSurfaceFrom(data32,w,h,32,w*4,0xff0000,0xff00,0xff,0);  //åˆ›å»º32ä½è¡¨é¢
 	}
-	ps2=SDL_DisplayFormat(ps1);   // °Ñ32Î»±íÃæ¸ÄÎªµ±Ç°±íÃæ
+	else{
+        ps1=SDL_CreateRGBSurfaceFrom(data32,h,w,32,h*4,0xff0000,0xff00,0xff,0);  //åˆ›å»º32ä½è¡¨é¢
+	}
+	if(ps1==NULL){
+		JY_Error("CreatePicSurface32: cannot create SDL_Surface ps1!\n");
+	}
+	ps2=SDL_DisplayFormat(ps1);   // æŠŠ32ä½è¡¨é¢æ”¹ä¸ºå½“å‰è¡¨é¢
 	if(ps2==NULL){
-		fprintf(stderr,"CreatePicSurface32: cannot create SDL_Surface ps2!\n");
+		JY_Error("CreatePicSurface32: cannot create SDL_Surface ps2!\n");
 	}
 
 	SDL_FreeSurface(ps1);      
 	SafeFree(data32);
    	
-    SDL_SetColorKey(ps2,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //Ê¹ÓÃRLE¼ÓËÙ
+    SDL_SetColorKey(ps2,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //é€æ˜è‰²
 
     return ps2;
    	
 }
 
 
-// ¶ÁÈ¡µ÷É«°å
-// ÎÄ¼şÃûÎª¿ÕÔòÖ±½Ó·µ»Ø
+
+// è¯»å–è°ƒè‰²æ¿
+// æ–‡ä»¶åä¸ºç©ºåˆ™ç›´æ¥è¿”å›
 static int LoadPallette(char *filename)
 {
     FILE *fp;
@@ -395,7 +460,7 @@ static int LoadPallette(char *filename)
 	if(strlen(filename)==0)    
 		return 1;
 	if((fp=fopen(filename,"rb"))==NULL){
-        fprintf(stderr,"Pallette File not open ---%s",filename);
+        JY_Error("Pallette File not open ---%s",filename);
 		return 1;
 	}
 	for(i=0;i<256;i++)
@@ -408,3 +473,5 @@ static int LoadPallette(char *filename)
 
 	return 0;
 }
+
+

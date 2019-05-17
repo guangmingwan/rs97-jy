@@ -1,31 +1,33 @@
 
-// Ö÷³ÌĞò
-// ±¾³ÌĞòÎªÓÎÓ¾µÄÓã±àĞ´¡£
-// °æÈ¨ËùÎŞ£¬Äú¿ÉÒÔÒÔÈÎºÎ·½Ê½Ê¹ÓÃ´úÂë
+// ä¸»ç¨‹åº
+// æœ¬ç¨‹åºä¸ºæ¸¸æ³³çš„é±¼ç¼–å†™ã€‚
+// ç‰ˆæƒæ‰€æ— ï¼Œæ‚¨å¯ä»¥ä»¥ä»»ä½•æ–¹å¼ä½¿ç”¨ä»£ç 
   
- 
+
 #include <stdio.h>
 #include <time.h>
 
 #include "jymain.h"
 
-// È«³Ì±äÁ¿
+// å…¨ç¨‹å˜é‡
 
-SDL_Surface* g_Surface=NULL;    // ÓÎÏ·Ê¹ÓÃµÄÊÓÆµ±íÃæ
-Uint32 g_MaskColor32=0x706020;      // Í¸Ã÷É«
+SDL_Surface* g_Surface=NULL;    // æ¸¸æˆä½¿ç”¨çš„è§†é¢‘è¡¨é¢
+Uint32 g_MaskColor32=0x706020;      // é€æ˜è‰²
 
-int g_ScreenW=640 ;          // ÆÁÄ»¿í¸ß
+int g_Rotate=0;              //å±å¹•æ˜¯å¦æ—‹è½¬
+
+int g_ScreenW=640 ;          // å±å¹•å®½é«˜
 int g_ScreenH=480 ;
-int g_ScreenBpp=16 ;         // ÆÁÄ»É«Éî
+int g_ScreenBpp=16 ;         // å±å¹•è‰²æ·±
 int g_FullScreen=0;
-int g_EnableSound=1;         // ÉùÒô¿ª¹Ø 0 ¹Ø±Õ 1 ´ò¿ª
-int g_MusicVolume=32;           // ÒôÀÖÉùÒô´óĞ¡
-int g_SoundVolume=32;           // ÒôĞ§ÉùÒô´óĞ¡
+int g_EnableSound=1;         // å£°éŸ³å¼€å…³ 0 å…³é—­ 1 æ‰“å¼€
+int g_MusicVolume=32;           // éŸ³ä¹å£°éŸ³å¤§å°
+int g_SoundVolume=32;           // éŸ³æ•ˆå£°éŸ³å¤§å°
 
-int g_XScale=18;             //ÌùÍ¼x,y·½ÏòÒ»°ë´óĞ¡
+int g_XScale=18;             //è´´å›¾x,yæ–¹å‘ä¸€åŠå¤§å°
 int g_YScale=9;
 
-//¸÷¸öµØÍ¼»æÖÆÊ±xy·½ÏòĞèÒª¶à»æÖÆµÄÓàÁ¿¡£±£Ö¤¿ÉÒÔÈ«²¿ÏÔÊ¾
+//å„ä¸ªåœ°å›¾ç»˜åˆ¶æ—¶xyæ–¹å‘éœ€è¦å¤šç»˜åˆ¶çš„ä½™é‡ã€‚ä¿è¯å¯ä»¥å…¨éƒ¨æ˜¾ç¤º
 int g_MMapAddX;              
 int g_MMapAddY;
 int g_SMapAddX;
@@ -33,16 +35,18 @@ int g_SMapAddY;
 int g_WMapAddX;
 int g_WMapAddY;
 
-int g_MAXCacheNum=1000;     //×î´ó»º´æÊıÁ¿
+int g_MAXCacheNum=1000;     //æœ€å¤§ç¼“å­˜æ•°é‡
 
-int g_LoadFullS=1;          //ÊÇ·ñÈ«²¿¼ÓÔØSÎÄ¼ş
+int g_LoadFullS=1;          //æ˜¯å¦å…¨éƒ¨åŠ è½½Sæ–‡ä»¶
+int g_LoadMMapType=0;          //æ˜¯å¦å…¨éƒ¨åŠ è½½Mæ–‡ä»¶
+int g_LoadMMapScope=0;       
+int g_PreLoadPicGrp=1;      //æ˜¯å¦é¢„å…ˆåŠ è½½è´´å›¾æ–‡ä»¶çš„grp
 
+static int IsDebug=0;         //æ˜¯å¦æ‰“å¼€è·Ÿè¸ªæ–‡ä»¶
 
-static int IsDebug=0;         //ÊÇ·ñ´ò¿ª¸ú×ÙÎÄ¼ş
+static char JYMain_Lua[255];  //luaä¸»å‡½æ•°
 
-static char JYMain_Lua[255];  //luaÖ÷º¯Êı
-
-//¶¨ÒåµÄlua½Ó¿Úº¯ÊıÃû
+//å®šä¹‰çš„luaæ¥å£å‡½æ•°å
 static const struct luaL_reg jylib [] = {
       {"Debug", HAPI_Debug},
 
@@ -96,7 +100,6 @@ static const struct luaL_reg jylib [] = {
       {"CleanWarMap", HAPI_CleanWarMap},
 
       {"DrawWarMap", HAPI_DrawWarMap},
-      {"DrawWarNum", HAPI_DrawWarNum},
 
       {NULL, NULL}
     };
@@ -120,100 +123,97 @@ static const struct luaL_reg bytelib [] = {
 
 
 
-// Ö÷³ÌĞò
+
+// ä¸»ç¨‹åº
 int main(int argc, char *argv[])
 {
-    remove("debug.txt");
-    freopen("error.txt","wt",stderr);    //ÉèÖÃstderrÊä³öµ½ÎÄ¼ş
+	lua_State *pL_main;
 
-    Lua_Config();        //¶ÁÈ¡luaÅäÖÃÎÄ¼ş£¬ÉèÖÃ²ÎÊı
+	remove(DEBUG_FILE);
+    freopen(ERROR_FILE,"wt",stderr);    //è®¾ç½®stderrè¾“å‡ºåˆ°æ–‡ä»¶
 
-    InitSDL();           //³õÊ¼»¯SDL
+	//åˆå§‹åŒ–lua
+	pL_main=lua_open();
+    luaL_openlibs(pL_main);
 
-	InitGame();          //³õÊ¼»¯ÓÎÏ·Êı¾İ
+    Lua_Config(pL_main,CONFIG_FILE);        //è¯»å–luaé…ç½®æ–‡ä»¶ï¼Œè®¾ç½®å‚æ•°
 
-	LoadMB("hzmb.dat");  //¼ÓÔØºº×Ö×Ö·û¼¯×ª»»Âë±í
+    InitSDL();           //åˆå§‹åŒ–SDL
 
-    Lua_Main();          //µ÷ÓÃLuaÖ÷º¯Êı£¬¿ªÊ¼ÓÎÏ·
+	InitGame();          //åˆå§‹åŒ–æ¸¸æˆæ•°æ®
+
+	LoadMB(HZMB_FILE);  //åŠ è½½æ±‰å­—å­—ç¬¦é›†è½¬æ¢ç è¡¨
  
-	ExitGame();       //ÊÍ·ÅÓÎÏ·Êı¾İ
+
+    Lua_Main(pL_main);          //è°ƒç”¨Luaä¸»å‡½æ•°ï¼Œå¼€å§‹æ¸¸æˆ
+
+   //å…³é—­lua
+    lua_close(pL_main);
+
+	ExitGame();       //é‡Šæ”¾æ¸¸æˆæ•°æ®
  
-    ExitSDL();        //ÍË³öSDL
- 
+    ExitSDL();        //é€€å‡ºSDL 
+
     return 0;
 }
 
 
-//LuaÖ÷º¯Êı
-int Lua_Main(void)
+//Luaä¸»å‡½æ•°
+int Lua_Main(lua_State *pL_main)
 {
-    lua_State *pL_main;
 	int result=0; 
-
-	//³õÊ¼»¯lua
-	 pL_main=lua_open();
-    luaL_openlibs(pL_main);
  
-    //×¢²áluaº¯Êı
+    //æ³¨å†Œluaå‡½æ•°
     luaL_register(pL_main,"lib", jylib);
     luaL_register(pL_main, "Byte", bytelib);
  
-
-	//¼ÓÔØluaÎÄ¼ş
+	//åŠ è½½luaæ–‡ä»¶
     result=luaL_loadfile(pL_main,JYMain_Lua);
     switch(result){
     case LUA_ERRSYNTAX:
-        fprintf(stderr,"load lua file %s error: syntax error!\n",JYMain_Lua);
+        JY_Error("load lua file %s error: syntax error!\n",JYMain_Lua);
         break;
     case LUA_ERRMEM:
-        fprintf(stderr,"load lua file %s error: memory allocation error!\n",JYMain_Lua);
+        JY_Error("load lua file %s error: memory allocation error!\n",JYMain_Lua);
         break;
     case LUA_ERRFILE:
-        fprintf(stderr,"load lua file %s error: can not open file!\n",JYMain_Lua);
+        JY_Error("load lua file %s error: can not open file!\n",JYMain_Lua);
         break;    
     }
     
 	result=lua_pcall(pL_main, 0, LUA_MULTRET, 0);
     
-    //µ÷ÓÃluaµÄÖ÷º¯ÊıJY_Main    
+    //è°ƒç”¨luaçš„ä¸»å‡½æ•°JY_Main    
    	lua_getglobal(pL_main,"JY_Main");
 	result=lua_pcall(pL_main,0,0,0);
-
- 
-    //¹Ø±Õlua
-    lua_close(pL_main);
 
 	return 0;
 }
 
 
-//Lua¶ÁÈ¡ÅäÖÃĞÅÏ¢
-int Lua_Config(void)
+//Luaè¯»å–é…ç½®ä¿¡æ¯
+int Lua_Config(lua_State *pL,const char *filename)
 {
-    char *filename="config.lua";
 	int result=0; 
-
-	//³õÊ¼»¯lua
-	lua_State *pL=lua_open();
-    luaL_openlibs(pL);
  
-	//¼ÓÔØluaÅäÖÃÎÄ¼ş
+	//åŠ è½½luaé…ç½®æ–‡ä»¶
     result=luaL_loadfile(pL,filename);
     switch(result){
     case LUA_ERRSYNTAX:
-        fprintf(stderr,"load lua file %s error: syntax error!\n",filename);
+        JY_Error("load lua file %s error: syntax error!\n",filename);
         break;
     case LUA_ERRMEM:
-        fprintf(stderr,"load lua file %s error: memory allocation error!\n",filename);
+        JY_Error("load lua file %s error: memory allocation error!\n",filename);
         break;
     case LUA_ERRFILE:
-        fprintf(stderr,"load lua file %s error: can not open file!\n",filename);
+        JY_Error("load lua file %s error: can not open file!\n",filename);
         break;    
     }
 
 	result=lua_pcall(pL, 0, LUA_MULTRET, 0);
 
-    lua_getglobal(pL,"CONFIG");            //¶ÁÈ¡config¶¨ÒåµÄÖµ
+    lua_getglobal(pL,"CONFIG");            //è¯»å–configå®šä¹‰çš„å€¼
+	g_Rotate=getfield(pL,"Rotate");
 	g_ScreenW=getfield(pL,"Width");
 	g_ScreenH= getfield(pL, "Height");
 	g_ScreenBpp=  getfield(pL, "bpp");
@@ -233,18 +233,17 @@ int Lua_Config(void)
 
     g_MAXCacheNum =getfield(pL, "MAXCacheNum");
     g_LoadFullS =getfield(pL, "LoadFullS");
+    g_LoadMMapType =getfield(pL, "LoadMMapType");
+    g_LoadMMapScope =getfield(pL, "LoadMMapScope");
+    g_PreLoadPicGrp =getfield(pL, "PreLoadPicGrp");
   
- 
-    getfieldstr(pL,"JYMain_Lua",JYMain_Lua);
-
-    //¹Ø±Õlua
-    lua_close(pL);
+     getfieldstr(pL,"JYMain_Lua",JYMain_Lua);
 
 	return 0;
 }
 
 
-//¶ÁÈ¡lua±íÖĞµÄÕûĞÍ
+//è¯»å–luaè¡¨ä¸­çš„æ•´å‹
 int getfield(lua_State *pL,const char *key)
 {
 	int result;
@@ -254,7 +253,7 @@ int getfield(lua_State *pL,const char *key)
 	return result;
 }
 
-//¶ÁÈ¡lua±íÖĞµÄ×Ö·û´®
+//è¯»å–luaè¡¨ä¸­çš„å­—ç¬¦ä¸²
 int getfieldstr(lua_State *pL,const char *key,char *str)
 {
  
@@ -269,32 +268,58 @@ int getfieldstr(lua_State *pL,const char *key,char *str)
 
 
 
-//ÒÔÏÂÎª¼¸¸öÍ¨ÓÃº¯Êı
+//ä»¥ä¸‹ä¸ºå‡ ä¸ªé€šç”¨å‡½æ•°
 
 
 
-// µ÷ÊÔº¯Êı
-// Êä³öµ½debug.txtÖĞ
-int JY_Debug(const char * str)
+// è°ƒè¯•å‡½æ•°
+// è¾“å‡ºåˆ°debug.txtä¸­
+int JY_Debug(const char * fmt,...)
 {
     time_t t;
 	FILE *fp;
     struct tm *newtime;
- 
+    va_list argptr;
+	char string[1024];
+	// concatenate all the arguments in one string
+	va_start(argptr, fmt);
+	vsnprintf(string, sizeof(string), fmt, argptr);
+	va_end(argptr);
     if(IsDebug==0)
         return 0;
 
-	fp=fopen("debug.txt","a+t");
+	fp=fopen(DEBUG_FILE,"a+t");
 	time(&t);
     newtime=localtime(&t);
-	fprintf(fp,"%02d:%02d:%02d %s\n",newtime->tm_hour,newtime->tm_min,newtime->tm_sec,str);
+	fprintf(fp,"%02d:%02d:%02d %s\n",newtime->tm_hour,newtime->tm_min,newtime->tm_sec,string);
  	fclose(fp);
 	return 0;
 }
+// è°ƒè¯•å‡½æ•°
+// è¾“å‡ºåˆ°error.txtä¸­
+int JY_Error(const char * fmt,...)
+{
+    time_t t;
+    struct tm *newtime;
+ 
+    va_list argptr;
+    char string[1024];
+       
+	va_start(argptr, fmt);
+	vsnprintf(string, sizeof(string), fmt, argptr);
+	va_end(argptr);
+    
+	time(&t);
+    newtime=localtime(&t);
+	fprintf(stderr,"%02d:%02d:%02d %s\n",newtime->tm_hour,newtime->tm_min,newtime->tm_sec,string);
+ 	fflush(stderr);
+	return 0;
+} 
+
 
  
 
-// ÏŞÖÆx´óĞ¡
+// é™åˆ¶xå¤§å°
 int limitX(int x, int xmin, int xmax)
 {
     if(x>xmax)
@@ -306,16 +331,16 @@ int limitX(int x, int xmin, int xmax)
 
 
 
-// ·µ»ØÎÄ¼ş³¤¶È£¬ÈôÎª0£¬ÔòÎÄ¼ş¿ÉÄÜ²»´æÔÚ
+// è¿”å›æ–‡ä»¶é•¿åº¦ï¼Œè‹¥ä¸º0ï¼Œåˆ™æ–‡ä»¶å¯èƒ½ä¸å­˜åœ¨
 int FileLength(const char *filename)
 {
     FILE   *f;  
     int ll;
     if((f=fopen(filename,"rb"))==NULL){
-        return 0;            // ÎÄ¼ş²»´æÔÚ£¬·µ»Ø
+        return 0;            // æ–‡ä»¶ä¸å­˜åœ¨ï¼Œè¿”å›
 	}
     fseek(f,0,SEEK_END);  
-    ll=ftell(f);    //ÕâÀïµÃµ½µÄlen¾ÍÊÇÎÄ¼şµÄ³¤¶ÈÁË
+    ll=ftell(f);    //è¿™é‡Œå¾—åˆ°çš„lenå°±æ˜¯æ–‡ä»¶çš„é•¿åº¦äº†
     fclose(f);   
 	return ll;
 }

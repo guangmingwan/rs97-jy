@@ -1,19 +1,25 @@
  
 
-// SDL Ïà¹Øº¯Êı
+// SDL ç›¸å…³å‡½æ•°
 
 #include "jymain.h"
  
-static Mix_Music *currentMusic=NULL;         //²¥·ÅÒôÀÖÊı¾İ£¬ÓÉÓÚÍ¬Ê±Ö»²¥·ÅÒ»¸ö£¬ÓÃÒ»¸ö±äÁ¿
+static Mix_Music *currentMusic=NULL;         //æ’­æ”¾éŸ³ä¹æ•°æ®ï¼Œç”±äºåŒæ—¶åªæ’­æ”¾ä¸€ä¸ªï¼Œç”¨ä¸€ä¸ªå˜é‡
 
 #define WAVNUM 5
 
-static Mix_Chunk *WavChunk[WAVNUM];        //²¥·ÅÒôĞ§Êı¾İ£¬¿ÉÒÔÍ¬Ê±²¥·Å¼¸¸ö£¬Òò´ËÓÃÊı×é
+static Mix_Chunk *WavChunk[WAVNUM];        //æ’­æ”¾éŸ³æ•ˆæ•°æ®ï¼Œå¯ä»¥åŒæ—¶æ’­æ”¾å‡ ä¸ªï¼Œå› æ­¤ç”¨æ•°ç»„
 
-static int currentWav=0;                  //µ±Ç°²¥·ÅµÄÒôĞ§
+static int currentWav=0;                  //å½“å‰æ’­æ”¾çš„éŸ³æ•ˆ
 
-extern SDL_Surface* g_Surface;        // ÓÎÏ·Ê¹ÓÃµÄÊÓÆµ±íÃæ
-extern Uint32 g_MaskColor32;      // Í¸Ã÷É«
+#define RECTNUM  20
+static SDL_Rect ClipRect[RECTNUM];        // å½“å‰è®¾ç½®çš„å‰ªè£çŸ©å½¢
+static int currentRect=0;
+
+extern SDL_Surface* g_Surface;        // æ¸¸æˆä½¿ç”¨çš„è§†é¢‘è¡¨é¢
+extern Uint32 g_MaskColor32;      // é€æ˜è‰²
+
+extern int g_Rotate;
 
 extern int g_ScreenW ;
 extern int g_ScreenH ;
@@ -24,9 +30,74 @@ extern int g_EnableSound;
 extern int g_MusicVolume;
 extern int g_SoundVolume;
 
+//è¿‡æ»¤ESCã€RETURNã€SPACEé”®ï¼Œä½¿ä»–ä»¬æŒ‰ä¸‹åä¸èƒ½é‡å¤ã€‚
+static int KeyFilter(const SDL_Event *event)
+{
+	static int Esc_KeyPress=0;
+	static int Space_KeyPress=0;
+	static int Return_KeyPress=0;
 
+	int r=1;
+	switch(event->type){   
+    case SDL_KEYDOWN:  
+		switch(event->key.keysym.sym){
+	    case SDLK_ESCAPE:
+			if(1==Esc_KeyPress){
+				r=0;
+			}
+			else{
+			    Esc_KeyPress=1;
+			}
+			break;
+	    case SDLK_RETURN:
+			if(1==Return_KeyPress){
+				r=0;
+			}
+			else{
+			    Return_KeyPress=1;
+			}
+			break;
+	    case SDLK_SPACE:
+			if(1==Space_KeyPress){
+				r=0;
+			}
+			else{
+			    Space_KeyPress=1;
+			}
+			break;
+		default:
+            break;
+		}
+		break;
 
-// ³õÊ¼»¯SDL
+    case SDL_KEYUP:
+		switch(event->key.keysym.sym){
+	    case SDLK_ESCAPE:
+			Esc_KeyPress=0;
+			break;
+		case SDLK_SPACE:
+			Space_KeyPress=0;
+			break;
+	    case SDLK_RETURN:
+			Return_KeyPress=0;
+			break;
+		default:
+            break;
+		}
+        break;
+
+    case SDL_QUIT:
+        ExitGame();
+        ExitSDL();
+        exit(0);
+
+    default: 
+        break;
+    }
+
+    return r;
+}
+// åˆå§‹åŒ–SDL
 int InitSDL(void)
 {
 	int r;
@@ -35,17 +106,17 @@ int InitSDL(void)
    
 	r=SDL_Init(SDL_INIT_VIDEO);
     if( r < 0 ) {
-        fprintf(stderr,
+        JY_Error(
                 "Couldn't initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
 
-    atexit(SDL_Quit);    
+    //atexit(SDL_Quit);    å¯èƒ½æœ‰é—®é¢˜ï¼Œå±è”½æ‰
  
     SDL_VideoDriverName(tmpstr, 255);
-	fprintf(stderr,"Video Driver: %s\n",tmpstr);
+	JY_Debug("Video Driver: %s\n",tmpstr);
 
-    InitFont();  //³õÊ¼»¯
+    InitFont();  //åˆå§‹åŒ–
     
 	r=SDL_InitSubSystem(SDL_INIT_AUDIO);
     if(r<0)
@@ -54,7 +125,7 @@ int InitSDL(void)
     r=Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 4096);
 
    if( r < 0 ) {
-        fprintf(stderr,
+        JY_Error(
                 "Couldn't initialize SDL_Mixer: %s\n", SDL_GetError());
         g_EnableSound=0;
     }
@@ -64,10 +135,12 @@ int InitSDL(void)
     for(i=0;i<WAVNUM;i++)
          WavChunk[i]=NULL;
 
+    SDL_SetEventFilter(KeyFilter);
+
     return 0;
 }
 
-// ÍË³öSDL
+// é€€å‡ºSDL
 int ExitSDL(void)
 {
 	int i;
@@ -85,40 +158,53 @@ int ExitSDL(void)
 
 	Mix_CloseAudio();
 
-    JY_LoadPicture("",0,0);    // ÊÍ·Å¿ÉÄÜ¼ÓÔØµÄÍ¼Æ¬±íÃæ
-
+    JY_LoadPicture("",0,0);    // é‡Šæ”¾å¯èƒ½åŠ è½½çš„å›¾ç‰‡è¡¨é¢
+    SDL_Quit();
     return 0;
 }
 
-// ×ª»»0RGBµ½µ±Ç°ÆÁÄ»ÑÕÉ«
+// è½¬æ¢0RGBåˆ°å½“å‰å±å¹•é¢œè‰²
 Uint32 ConvertColor(Uint32 color){
    Uint8 *p=(Uint8*)&color;
    return SDL_MapRGB(g_Surface->format,*(p+2),*(p+1),*p);
 }    
 
 
-// ³õÊ¼»¯ÓÎÏ·Êı¾İ
+// åˆå§‹åŒ–æ¸¸æˆæ•°æ®
 int InitGame(void)
 {
+    int w,h;
+
+	if(g_Rotate==0){
+		w=g_ScreenW;
+		h=g_ScreenH;
+	}
+	else{
+		w=g_ScreenH;
+		h=g_ScreenW;
+	}
+
 
     if(g_FullScreen==0)
-        g_Surface=SDL_SetVideoMode(g_ScreenW,g_ScreenH, 0, SDL_SWSURFACE);
+        g_Surface=SDL_SetVideoMode(w,h, 0, SDL_SWSURFACE);
 	else
-	    g_Surface=SDL_SetVideoMode(g_ScreenW, g_ScreenH, g_ScreenBpp, SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN);
+	    g_Surface=SDL_SetVideoMode(w, h, g_ScreenBpp, SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN);
 
 
 	if(g_Surface==NULL)
-		fprintf(stderr,"Cannot set video mode");
+		JY_Error("Cannot set video mode");
 
     Init_Cache();
 	
-    JY_PicInit("");        // ³õÊ¼»¯ÌùÍ¼cache
+    JY_PicInit("");        // åˆå§‹åŒ–è´´å›¾cache
 
     return 0;
 }
 
 
-// ÊÍ·ÅÓÎÏ·×ÊÔ´
+
+
+// é‡Šæ”¾æ¸¸æˆèµ„æº
 int ExitGame(void)
 {
 
@@ -126,20 +212,23 @@ int ExitGame(void)
     
     JY_LoadPicture("",0,0);
 
-    JY_UnloadMMap();     //ÊÍ·ÅÖ÷µØÍ¼ÄÚ´æ
+    JY_UnloadMMap();     //é‡Šæ”¾ä¸»åœ°å›¾å†…å­˜
 
-	JY_UnloadSMap();     //ÊÍ·Å³¡¾°µØÍ¼ÄÚ´æ
+	JY_UnloadSMap();     //é‡Šæ”¾åœºæ™¯åœ°å›¾å†…å­˜
 
-    JY_UnloadWarMap();   //ÊÍ·ÅÕ½¶·µØÍ¼ÄÚ´æ
+    JY_UnloadWarMap();   //é‡Šæ”¾æˆ˜æ–—åœ°å›¾å†…å­˜
 
     return 0;
 }
 
 
-//¼ÓÔØÍ¼ĞÎÎÄ¼ş£¬ÆäËû¸ñÊ½Ò²¿ÉÒÔ¼ÓÔØ
-//x,y =-1 Ôò¼ÓÔØµ½ÆÁÄ»ÖĞĞÄ
-//    Èç¹ûÎ´¼ÓÔØ£¬Ôò¼ÓÔØ£¬È»ºóblit£¬Èç¹û¼ÓÔØ£¬Ö±½Óblit
-//  str ÎÄ¼şÃû£¬Èç¹ûÎª¿Õ£¬ÔòÊÍ·Å±íÃæ        
+
+
+
+//åŠ è½½å›¾å½¢æ–‡ä»¶ï¼Œå…¶ä»–æ ¼å¼ä¹Ÿå¯ä»¥åŠ è½½
+//x,y =-1 åˆ™åŠ è½½åˆ°å±å¹•ä¸­å¿ƒ
+//    å¦‚æœæœªåŠ è½½ï¼Œåˆ™åŠ è½½ï¼Œç„¶åblitï¼Œå¦‚æœåŠ è½½ï¼Œç›´æ¥blit
+//  str æ–‡ä»¶åï¼Œå¦‚æœä¸ºç©ºï¼Œåˆ™é‡Šæ”¾è¡¨é¢        
 int JY_LoadPicture(const char* str,int x,int y)
 {
     static char filename[255]="\0";   		
@@ -148,7 +237,7 @@ int JY_LoadPicture(const char* str,int x,int y)
 	SDL_Surface *tmppic;
 	SDL_Rect r;
 
-	if(strlen(str)==0){        // Îª¿ÕÔòÊÍ·Å±íÃæ
+	if(strlen(str)==0){        // ä¸ºç©ºåˆ™é‡Šæ”¾è¡¨é¢
         if(pic){
 		    SDL_FreeSurface(pic);
             pic=NULL;
@@ -156,31 +245,47 @@ int JY_LoadPicture(const char* str,int x,int y)
 		return 0;
 	}
 	
-    if(strcmp(str,filename)!=0){ // ÓëÒÔÇ°ÎÄ¼şÃû²»Í¬£¬ÔòÊÍ·ÅÔ­À´±íÃæ£¬¼ÓÔØĞÂ±íÃæ
+    if(strcmp(str,filename)!=0){ // ä¸ä»¥å‰æ–‡ä»¶åä¸åŒï¼Œåˆ™é‡Šæ”¾åŸæ¥è¡¨é¢ï¼ŒåŠ è½½æ–°è¡¨é¢
         if(pic){
 		    SDL_FreeSurface(pic);
             pic=NULL;
         }
         tmppic = IMG_Load(str);
         if(tmppic){
-		    pic=SDL_DisplayFormat(tmppic);   // ¸ÄÎªµ±Ç°±íÃæµÄÏñËØ¸ñÊ½
+		    pic=SDL_DisplayFormat(tmppic);   // æ”¹ä¸ºå½“å‰è¡¨é¢çš„åƒç´ æ ¼å¼
  		    SDL_FreeSurface(tmppic);
+			if(g_Rotate==1){
+                tmppic=RotateSurface(pic);
+ 		        SDL_FreeSurface(pic);
+                pic=tmppic;
+			}
             strcpy(filename,str);
         }
 	}
 
 	if(pic){
-        if( (x==-1) && (y==-1) ){
-			x=(g_ScreenW-pic->w)/2;
-			y=(g_ScreenH-pic->h)/2;
+	    if(g_Rotate==0){
+			if( (x==-1) && (y==-1) ){
+				x=(g_ScreenW-pic->w)/2;
+				y=(g_ScreenH-pic->h)/2;
+			}
+			r.x=(Sint16)x;
+			r.y=(Sint16)y;
 		}
-	    r.x=x;
-	    r.y=y;
-        SDL_BlitSurface(pic, NULL, g_Surface, &r);
+		else{
+			if( (x==-1) && (y==-1) ){
+				x=(g_ScreenW-pic->h)/2;
+				y=(g_ScreenH-pic->w)/2;
+			}
+			r.x=(Sint16)y;
+			r.y=(Sint16)x;
+		}
+
+		SDL_BlitSurface(pic, NULL, g_Surface, &r);
 
 	}
 	else{
-        fprintf(stderr,"JY_LoadPicture: Load picture file %s failed!",str);
+        JY_Error("JY_LoadPicture: Load picture file %s failed!",str);
 	}
 
 	return 0;
@@ -188,14 +293,22 @@ int JY_LoadPicture(const char* str,int x,int y)
 
 
 
-//ÏÔÊ¾±íÃæ
-int JY_ShowSurface()
+//æ˜¾ç¤ºè¡¨é¢
+//flag = 0 æ˜¾ç¤ºå…¨éƒ¨è¡¨é¢  =1 æŒ‰ç…§JY_SetClipè®¾ç½®çš„çŸ©å½¢æ˜¾ç¤ºï¼Œå¦‚æœæ²¡æœ‰çŸ©å½¢ï¼Œåˆ™ä¸æ˜¾ç¤º
+int JY_ShowSurface(int flag)
 {
-	SDL_Flip(g_Surface);
+	if(flag==1){
+		if(currentRect>0){
+			SDL_UpdateRects(g_Surface,currentRect,ClipRect);
+		}
+	}
+	else{
+        SDL_UpdateRect(g_Surface,0,0,0,0);
+	}
 	return 0;
 }
 
-//ÑÓÊ±xºÁÃë
+//å»¶æ—¶xæ¯«ç§’
 int JY_Delay(int x)
 {
     SDL_Delay(x);
@@ -203,27 +316,33 @@ int JY_Delay(int x)
 }
 
 
-// »ºÂıÏÔÊ¾Í¼ĞÎ 
-// delaytime Ã¿´Î½¥±äÑÓÊ±ºÁÃëÊı
-// Flag=0 ´Ó°µµ½ÁÁ£¬1£¬´ÓÁÁµ½°µ
+// ç¼“æ…¢æ˜¾ç¤ºå›¾å½¢ 
+// delaytime æ¯æ¬¡æ¸å˜å»¶æ—¶æ¯«ç§’æ•°
+// Flag=0 ä»æš—åˆ°äº®ï¼Œ1ï¼Œä»äº®åˆ°æš—
 int JY_ShowSlow(int delaytime,int Flag)
 {
+  if (Flag) {
+    SDL_FillRect(g_Surface,NULL,0);
+    JY_ShowSurface(0);
+    SDL_Delay(400);
+  }
+  /*
     int i;
 	int step;
 	int t1,t2;
 	int alpha;
 
  
-    SDL_Surface* lps1;  // ½¨Á¢ÁÙÊ±±íÃæ
+    SDL_Surface* lps1;  // å»ºç«‹ä¸´æ—¶è¡¨é¢
 	lps1=SDL_CreateRGBSurface(SDL_SWSURFACE,g_Surface->w,g_Surface->h,g_Surface->format->BitsPerPixel,
 		                      g_Surface->format->Rmask,g_Surface->format->Gmask,g_Surface->format->Bmask,0);
 
 	if(lps1==NULL){
-		fprintf(stderr,"JY_ShowSlow: Create surface failed!");
+		JY_Error("JY_ShowSlow: Create surface failed!");
 		return 1;
 	}
 
-	SDL_BlitSurface(g_Surface ,NULL,lps1,NULL);    //µ±Ç°±íÃæ¸´ÖÆµ½ÁÙÊ±±íÃæ
+	SDL_BlitSurface(g_Surface ,NULL,lps1,NULL);    //å½“å‰è¡¨é¢å¤åˆ¶åˆ°ä¸´æ—¶è¡¨é¢
 
 	for(i=0;i<=32;i++)
 	{
@@ -232,37 +351,58 @@ int JY_ShowSlow(int delaytime,int Flag)
 	    else
 			step=32-i;
 
-        t1=JY_GetTime();
+        t1=(int)JY_GetTime();
  
-        SDL_FillRect(g_Surface,NULL,0);          //µ±Ç°±íÃæ±äºÚ
+        SDL_FillRect(g_Surface,NULL,0);          //å½“å‰è¡¨é¢å˜é»‘
 
         alpha=step<<3;
 		if(alpha>255) 
 			alpha=255;
 
-        SDL_SetAlpha(lps1,SDL_SRCALPHA,(Uint8)alpha);  //ÉèÖÃalpha
+        SDL_SetAlpha(lps1,SDL_SRCALPHA,(Uint8)alpha);  //è®¾ç½®alpha
+
 
 		SDL_BlitSurface(lps1 ,NULL,g_Surface,NULL); 
 
-        JY_ShowSurface();
+        JY_ShowSurface(0);
 
-        t2=JY_GetTime();
+        t2=(int)JY_GetTime();
+
 		if(delaytime > t2-t1)
 			JY_Delay(delaytime-(t2-t1));
 	}
 
-    SDL_FreeSurface(lps1);       //ÊÍ·Å±íÃæ
- 
+    SDL_FreeSurface(lps1);       //é‡Šæ”¾è¡¨é¢
+  */
 	return 0;
 }
 
-//µÃµ½µ±Ç°Ê±¼ä£¬µ¥Î»ºÁÃë
-int JY_GetTime()
+
+#ifdef HIGH_PRECISION_CLOCK
+
+__int64 GetCycleCount()
 {
-    return SDL_GetTicks();
+__asm _emit 0x0F
+__asm _emit 0x31
+} 
+
+#endif
+
+//å¾—åˆ°å½“å‰æ—¶é—´ï¼Œå•ä½æ¯«ç§’
+double JY_GetTime()
+{
+#ifdef HIGH_PRECISION_CLOCK    
+    return (double)(GetCycleCount())/(1000*CPU_FREQUENCY);
+#else
+    return (double) SDL_GetTicks();
+#endif
+
 }
 
-//²¥·ÅÒôÀÖ
+
+
+ 
+//æ’­æ”¾éŸ³ä¹
 int JY_PlayMIDI(const char *filename)
 {
 	static char currentfile[255]="\0";
@@ -270,13 +410,13 @@ int JY_PlayMIDI(const char *filename)
     if(g_EnableSound==0)
 		return 1;
 
-	if(strlen(filename)==0){  //ÎÄ¼şÃûÎª¿Õ£¬Í£Ö¹²¥·Å
+	if(strlen(filename)==0){  //æ–‡ä»¶åä¸ºç©ºï¼Œåœæ­¢æ’­æ”¾
         StopMIDI();
         strcpy(currentfile,filename);
 		return 0;
 	}
 	
-	if(strcmp(currentfile,filename)==0) //Óëµ±Ç°²¥·ÅÎÄ¼şÏàÍ¬£¬Ö±½Ó·µ»Ø
+	if(strcmp(currentfile,filename)==0) //ä¸å½“å‰æ’­æ”¾æ–‡ä»¶ç›¸åŒï¼Œç›´æ¥è¿”å›
 		return 0;
 
     StopMIDI();
@@ -284,7 +424,7 @@ int JY_PlayMIDI(const char *filename)
 	currentMusic=Mix_LoadMUS(filename);
 
 	if(currentMusic==NULL){
-		fprintf(stderr,"Open music file %s failed!",filename);
+		JY_Error("Open music file %s failed!",filename);
 		return 1;
 	}
 
@@ -297,7 +437,7 @@ int JY_PlayMIDI(const char *filename)
 	return 0;
 }
 
-//Í£Ö¹ÒôĞ§
+//åœæ­¢éŸ³æ•ˆ
 int StopMIDI()
 {
     if(currentMusic!=NULL){
@@ -309,36 +449,36 @@ int StopMIDI()
 }
 
 
-//²¥·ÅÒôĞ§
+//æ’­æ”¾éŸ³æ•ˆ
 int JY_PlayWAV(const char *filename)
 {
 	
     if(g_EnableSound==0)
 		return 1;    
 
-	if(WavChunk[currentWav]){          //ÊÍ·Åµ±Ç°ÒôĞ§
+	if(WavChunk[currentWav]){          //é‡Šæ”¾å½“å‰éŸ³æ•ˆ
         Mix_FreeChunk(WavChunk[currentWav]);
         WavChunk[currentWav]=NULL;
 	}
 
-	WavChunk[currentWav]= Mix_LoadWAV(filename);  //¼ÓÔØµ½µ±Ç°ÒôĞ§
+	WavChunk[currentWav]= Mix_LoadWAV(filename);  //åŠ è½½åˆ°å½“å‰éŸ³æ•ˆ
 
 	if(WavChunk[currentWav]){
         Mix_VolumeChunk(WavChunk[currentWav],g_SoundVolume);
-        Mix_PlayChannel(-1, WavChunk[currentWav], 0);  //²¥·ÅÒôĞ§
+        Mix_PlayChannel(-1, WavChunk[currentWav], 0);  //æ’­æ”¾éŸ³æ•ˆ
 		currentWav++;
 		if(currentWav>=WAVNUM)
 			currentWav=0;
 	}
 	else{
-		fprintf(stderr,"Open wav file %s failed!",filename);
+		JY_Error("Open wav file %s failed!",filename);
 	}
 
 	return 0;
 }
 
 
-// µÃµ½Ç°Ãæ°´ÏÂµÄ×Ö·û
+// å¾—åˆ°å‰é¢æŒ‰ä¸‹çš„å­—ç¬¦
 int JY_GetKey()
 {
     SDL_Event event;
@@ -358,39 +498,91 @@ int JY_GetKey()
 }
 
 
-//ÉèÖÃ²Ã¼ô
+//è®¾ç½®è£å‰ª
 int JY_SetClip(int x1,int y1,int x2,int y2)
 {
-    SDL_Rect r;
 	if (x1==0 && y1==0 && x2==0 && y2==0){
 		SDL_SetClipRect(g_Surface,NULL);
+		currentRect=0;
 	}
     else{
-        r.x=x1;
-		r.y=y1;
-		r.w=x2-x1;
-		r.h=y2-y1;
-        SDL_SetClipRect(g_Surface,&r);
+		SDL_Rect rect;
+        rect.x=(Sint16)x1;
+		rect.y=(Sint16)y1;
+		rect.w=(Uint16)(x2-x1);
+		rect.h=(Uint16)(y2-y1);
+
+		if(g_Rotate==0){
+            ClipRect[currentRect]=rect;
+		}
+		else if(g_Rotate==1){
+            ClipRect[currentRect]=RotateRect(&rect);
+		}
+
+
+		SDL_SetClipRect(g_Surface,&ClipRect[currentRect]);
+        currentRect=currentRect+1;
+		if(currentRect>=RECTNUM){
+			currentRect=0;
+		}
 	}
 
     return 0;
 }
 
 
-// »æÖÆ¾ØĞÎ¿ò
-// (x1,y1)--(x2,y2) ¿òµÄ×óÉÏ½ÇºÍÓÒÏÂ½Ç×ø±ê
-// color ÑÕÉ«
+// ç»˜åˆ¶çŸ©å½¢æ¡†
+// (x1,y1)--(x2,y2) æ¡†çš„å·¦ä¸Šè§’å’Œå³ä¸‹è§’åæ ‡
+// color é¢œè‰²
 int JY_DrawRect(int x1,int y1,int x2,int y2,int color)
 {
     Uint8 *p ;
 	int lpitch=0;
 	Uint32 c;
+	SDL_Rect rect1,rect2;
+	int xmin,xmax,ymin,ymax;
+
+	if(x1<x2){
+		xmin=x1;
+		xmax=x2;
+	}
+	else{
+		xmin=x2;
+		xmax=x1;
+	}
+
+	if(y1<y2){
+		ymin=y1;
+		ymax=y2;
+	}
+	else{
+		ymin=y2;
+		ymax=y1;
+	}
+
+	rect1.x=(Sint16)xmin;
+	rect1.y=(Sint16)ymin;
+	rect1.w=(Uint16)(xmax-xmin+1);
+	rect1.h=(Uint16)(ymax-ymin+1);
  
     SDL_LockSurface(g_Surface);
     p=g_Surface->pixels;
 	lpitch=g_Surface->pitch;
 
 	c=ConvertColor(color);
+
+	if(g_Rotate==0){
+		rect2=rect1;
+	}
+	else{
+        rect2=RotateRect(&rect1);
+	}
+
+    x1=rect2.x;
+	y1=rect2.y;
+	x2=rect2.x+rect2.w-1;
+	y2=rect2.y+rect2.h-1;
+
 	HLine32(x1,x2,y1,c,p,lpitch);
 	HLine32(x1,x2,y2,c,p,lpitch);
  	VLine32(y1,y2,x1,c,p,lpitch); 
@@ -402,7 +594,7 @@ int JY_DrawRect(int x1,int y1,int x2,int y2,int color)
 }
 
 
-//»æË®Æ½Ïß
+//ç»˜æ°´å¹³çº¿
 void HLine32(int x1,int x2,int y,int color, unsigned char *vbuffer, int lpitch)
 {
  
@@ -414,7 +606,7 @@ void HLine32(int x1,int x2,int y,int color, unsigned char *vbuffer, int lpitch)
 
 	bpp=g_Surface->format->BytesPerPixel;
 
-    //ÊÖ¹¤¼ô²Ã
+    //æ‰‹å·¥å‰ªè£
     min_x=g_Surface->clip_rect.x;
 	min_y=g_Surface->clip_rect.y;
 	max_x=g_Surface->clip_rect.x+g_Surface->clip_rect.w-1;
@@ -438,21 +630,22 @@ void HLine32(int x1,int x2,int y,int color, unsigned char *vbuffer, int lpitch)
  
     vbuffer2=vbuffer+y*lpitch+x1*bpp;
 	switch(bpp){
-	case 2:        //16Î»É«²Ê
+	case 2:        //16ä½è‰²å½©
 		for(i=0;i<=x2-x1;i++){
 			*(Uint16*)vbuffer2=(Uint16)color;
 			vbuffer2+=2;
 		}
         break; 
-	case 3:        //24Î»É«²Ê
+	case 3:        //24ä½è‰²å½©
 		for(i=0;i<=x2-x1;i++){
-			*(Uint16*)vbuffer2=(Uint16)color;
-			vbuffer2+=2;
-			*vbuffer2=(color & 0xff0000)>>16;
-			vbuffer2++;
+			Uint8 *p=(Uint8*)(&color);
+			*vbuffer2=*p;
+			*(vbuffer2+1)=*(p+1);
+			*(vbuffer2+2)=*(p+2);
+			vbuffer2+=3;
 		}
         break; 
-	case 4:        //32Î»É«²Ê
+	case 4:        //32ä½è‰²å½©
 		for(i=0;i<=x2-x1;i++){
 			*(Uint32*)vbuffer2=(Uint32)color;
 			vbuffer2+=4;
@@ -461,7 +654,7 @@ void HLine32(int x1,int x2,int y,int color, unsigned char *vbuffer, int lpitch)
     }
 }  
 
-//»æ´¹Ö±Ïß
+//ç»˜å‚ç›´çº¿
 void VLine32(int y1,int y2,int x,int color, unsigned char *vbuffer, int lpitch)
 {
  
@@ -504,8 +697,11 @@ void VLine32(int y1,int y2,int x,int color, unsigned char *vbuffer, int lpitch)
         break; 
 	case 3:
 		for(i=0;i<=y2-y1;i++){
-			*(Uint16*)vbuffer2=(Uint16)color;
-			*(vbuffer2+2)=(color & 0xff0000)>>16;
+			Uint8 *p=(Uint8*)(&color);
+			*vbuffer2=*p;
+			*(vbuffer2+1)=*(p+1);
+			*(vbuffer2+2)=*(p+2);
+
 			vbuffer2+=lpitch;
 		}
         break; 
@@ -521,23 +717,23 @@ void VLine32(int y1,int y2,int x,int color, unsigned char *vbuffer, int lpitch)
 
 
 
-// Í¼ĞÎÌî³ä
-// Èç¹ûx1,y1,x2,y2¾ùÎª0£¬ÔòÌî³äÕû¸ö±íÃæ
-// color, Ìî³äÉ«£¬ÓÃRGB±íÊ¾£¬´Ó¸ßµ½µÍ×Ö½ÚÎª0RGB
+// å›¾å½¢å¡«å……
+// å¦‚æœx1,y1,x2,y2å‡ä¸º0ï¼Œåˆ™å¡«å……æ•´ä¸ªè¡¨é¢
+// color, å¡«å……è‰²ï¼Œç”¨RGBè¡¨ç¤ºï¼Œä»é«˜åˆ°ä½å­—èŠ‚ä¸º0RGB
 int JY_FillColor(int x1,int y1,int x2,int y2,int color)
 {
 	int c=ConvertColor(color);
 
     SDL_Rect rect;
    
-	if(x1==0 || y1==0 || x2==0 || y2==0){
+	if(x1==0 && y1==0 && x2==0 && y2==0){
         SDL_FillRect(g_Surface,NULL,c);
 	}
 	else{
-		rect.x=x1;
-		rect.y=y1;
-		rect.w=x2-x1+1;
-		rect.h=y2-y1+1;
+		rect.x=(Sint16)x1;
+		rect.y=(Sint16)y1;
+		rect.w=(Uint16)(x2-x1);
+		rect.h=(Uint16)(y2-y1);
 
 		SDL_FillRect(g_Surface,&rect,c);
 	}
@@ -547,13 +743,13 @@ int JY_FillColor(int x1,int y1,int x2,int y2,int color)
 }
 
 
-// °Ñ±íÃæbltµ½±³¾°»òÕßÇ°¾°±íÃæ
-// x,y Òª¼ÓÔØµ½±íÃæµÄ×óÉÏ½Ç×ø±ê
+// æŠŠè¡¨é¢bltåˆ°èƒŒæ™¯æˆ–è€…å‰æ™¯è¡¨é¢
+// x,y è¦åŠ è½½åˆ°è¡¨é¢çš„å·¦ä¸Šè§’åæ ‡
 int BlitSurface(SDL_Surface* lps, int x, int y ,int flag,int value)
 {
 
 	SDL_Surface *tmps;
-	SDL_Rect r;
+	SDL_Rect rect;
 	int i,j;
 
     Uint32 color=ConvertColor(g_MaskColor32);
@@ -561,16 +757,16 @@ int BlitSurface(SDL_Surface* lps, int x, int y ,int flag,int value)
 	if(value>255)
 		value=255;
 
-	r.x=x;
-	r.y=y;
+	rect.x=(Sint16)x;
+	rect.y=(Sint16)y;
 
-	if((flag & 0x2)==0){        // Ã»ÓĞalpla
-        SDL_BlitSurface(lps,NULL,g_Surface,&r);
+	if((flag & 0x2)==0){        // æ²¡æœ‰alpla
+        SDL_BlitSurface(lps,NULL,g_Surface,&rect);
 	}
-    else{  // ÓĞalpha
-        if( (flag &0x4) || (flag &0x8)){   // ºÚ°×
+    else{  // æœ‰alpha
+        if( (flag &0x4) || (flag &0x8)){   // é»‘ç™½
  		    int bpp=lps->format->BitsPerPixel;
-		    //´´½¨ÁÙÊ±±íÃæ
+		    //åˆ›å»ºä¸´æ—¶è¡¨é¢
     	    tmps=SDL_CreateRGBSurface(SDL_SWSURFACE,lps->w,lps->h,bpp,
 		                          lps->format->Rmask,lps->format->Gmask,lps->format->Bmask,0);
 
@@ -607,7 +803,7 @@ int BlitSurface(SDL_Surface* lps, int x, int y ,int flag,int value)
                     }
                 }
             }
-            else if(bpp=24){
+            else if(bpp==24){
                 for(j=0;j<tmps->h;j++){
                     Uint8 *p=(Uint8*)tmps->pixels+j*tmps->pitch;
                     for(i=0;i<tmps->w;i++){
@@ -635,7 +831,7 @@ int BlitSurface(SDL_Surface* lps, int x, int y ,int flag,int value)
 
             SDL_SetAlpha(tmps,SDL_SRCALPHA,(Uint8)value);
 
-	        SDL_BlitSurface(tmps,NULL,g_Surface,&r);
+	        SDL_BlitSurface(tmps,NULL,g_Surface,&rect);
 
 		    SDL_FreeSurface(tmps);
         }
@@ -643,7 +839,7 @@ int BlitSurface(SDL_Surface* lps, int x, int y ,int flag,int value)
  
             SDL_SetAlpha(lps,SDL_SRCALPHA,(Uint8)value);
 
-	        SDL_BlitSurface(lps,NULL,g_Surface,&r);
+	        SDL_BlitSurface(lps,NULL,g_Surface,&rect);
  
         }
 	}
@@ -652,13 +848,13 @@ int BlitSurface(SDL_Surface* lps, int x, int y ,int flag,int value)
 }
 
 
-// ±³¾°±ä°µ
-// °ÑÔ´±íÃæ(x1,y1,x2,y2)¾ØĞÎÄÚµÄËùÓĞµãÁÁ¶È½µµÍ
-// bright ÁÁ¶ÈµÈ¼¶ 0-256 
+// èƒŒæ™¯å˜æš—
+// æŠŠæºè¡¨é¢(x1,y1,x2,y2)çŸ©å½¢å†…çš„æ‰€æœ‰ç‚¹äº®åº¦é™ä½
+// bright äº®åº¦ç­‰çº§ 0-256 
 int JY_Background(int x1,int y1,int x2,int y2,int Bright)
 {
     SDL_Surface* lps1; 
-    SDL_Rect r; 
+    SDL_Rect r1,r2; 
 
 	if(x2<=x1 || y2<=y1) 
 		return 0;
@@ -667,7 +863,20 @@ int JY_Background(int x1,int y1,int x2,int y2,int Bright)
 	if(Bright>255)
 		Bright=255;
 
-	lps1=SDL_CreateRGBSurface(SDL_SWSURFACE,x2-x1,y2-y1,g_Surface->format->BitsPerPixel,
+    r1.x=(Sint16)x1;
+	r1.y=(Sint16)y1;
+    r1.w=(Uint16)(x2-x1);
+    r1.h=(Uint16)(y2-y1);
+
+	if(g_Rotate==0){
+		r2=r1;
+	}
+	else{
+		r2=RotateRect(&r1);
+	}
+
+
+	lps1=SDL_CreateRGBSurface(SDL_SWSURFACE,r2.w,r2.h,g_Surface->format->BitsPerPixel,
 		                      g_Surface->format->Rmask,g_Surface->format->Gmask,g_Surface->format->Bmask,0);
 
 
@@ -676,19 +885,18 @@ int JY_Background(int x1,int y1,int x2,int y2,int Bright)
 
     SDL_SetAlpha(lps1,SDL_SRCALPHA,(Uint8)Bright);
 
-    r.x=x1;
-	r.y=y1;
-
-	SDL_BlitSurface(lps1,NULL,g_Surface,&r); 
+	SDL_BlitSurface(lps1,NULL,g_Surface,&r2); 
 
 	SDL_FreeSurface(lps1);
 	return 1;
 }
 
-//²¥·Åmpeg
-// esckey Í£Ö¹²¥·ÅµÄ°´¼ü
+//æ’­æ”¾mpeg
+// esckey åœæ­¢æ’­æ”¾çš„æŒ‰é”®
 int JY_PlayMPEG(const char* filename,int esckey)
 {
+
+#ifdef HAS_SDL_MPEG
      SMPEG_Info mpg_info;
      SMPEG* mpg = NULL;
 	 char *err;
@@ -697,7 +905,7 @@ int JY_PlayMPEG(const char* filename,int esckey)
   
 	 err=SMPEG_error(mpg);
 	 if(err!=NULL){
-		 fprintf(stderr,"Open file %s error: %s\n",filename,err);
+		 JY_Error("Open file %s error: %s\n",filename,err);
 		 return 1;
 	 }
      
@@ -715,7 +923,7 @@ int JY_PlayMPEG(const char* filename,int esckey)
 		Mix_QuerySpec(&freq, &format, &channels);
 		audiofmt.format = format;
 		audiofmt.freq = freq;
-		audiofmt.channels = channels;
+		audiofmt.channels = (Uint8)channels;
 		SMPEG_actualSpec(mpg, &audiofmt);
 
 		/* Hook in the MPEG music mixer */
@@ -736,14 +944,17 @@ int JY_PlayMPEG(const char* filename,int esckey)
     SMPEG_stop(mpg);
     SMPEG_delete(mpg);
     Mix_HookMusic(NULL, NULL);
+#endif
+
 	return 0;
 } 
 
 
-// È«ÆÁÇĞ»»
+// å…¨å±åˆ‡æ¢
 int JY_FullScreen()
 {    
     SDL_Surface *tmpsurface;
+	const SDL_VideoInfo *info;
 
 	Uint32 flag=g_Surface->flags;
 
@@ -752,17 +963,123 @@ int JY_FullScreen()
 
     SDL_BlitSurface(g_Surface,NULL,tmpsurface,NULL);
 
-	if(flag & SDL_FULLSCREEN)    //È«ÆÁ£¬ÉèÖÃ´°¿Ú
-        g_Surface=SDL_SetVideoMode(g_ScreenW,g_ScreenH, 0, SDL_SWSURFACE);
+	if(flag & SDL_FULLSCREEN)    //å…¨å±ï¼Œè®¾ç½®çª—å£
+        g_Surface=SDL_SetVideoMode(g_Surface->w,g_Surface->h, 0, SDL_SWSURFACE);
 	else
-	    g_Surface=SDL_SetVideoMode(g_ScreenW, g_ScreenH, g_ScreenBpp, SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN);
+	    g_Surface=SDL_SetVideoMode(g_Surface->w, g_Surface->h, g_ScreenBpp, SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN);
 
 
 	SDL_BlitSurface(tmpsurface,NULL,g_Surface,NULL);
 
-    JY_ShowSurface();
+    JY_ShowSurface(0);
 
 	SDL_FreeSurface(tmpsurface);
   
+    info=SDL_GetVideoInfo();    
+	JY_Debug("hw_available=%d,wm_available=%d",info->hw_available,info->wm_available);
+    JY_Debug("blit_hw=%d,blit_hw_CC=%d,blit_hw_A=%d",info->blit_hw,info->blit_hw_CC ,info->blit_hw_A );
+    JY_Debug("blit_sw=%d,blit_sw_CC=%d,blit_sw_A=%d",info->blit_hw,info->blit_hw_CC ,info->blit_hw_A );
+    JY_Debug("blit_fill=%d,videomem=%d",info->blit_fill,info->video_mem  );
+	JY_Debug("Color depth=%d",info->vfmt->BitsPerPixel);
+
 	return 0;
 }
+
+//è¡¨é¢å³è½¬90åº¦
+SDL_Surface *RotateSurface(SDL_Surface *src)
+{
+    SDL_Surface *dest;    
+	int i,j;
+
+
+	dest=SDL_CreateRGBSurface(SDL_SWSURFACE,src->h,src->w,src->format->BitsPerPixel,
+		                      src->format->Rmask,src->format->Gmask,src->format->Bmask,src->format->Amask);
+
+	if(src->format->BitsPerPixel==8){
+		SDL_SetPalette(dest,SDL_LOGPAL,src->format->palette->colors,0,src->format->palette->ncolors);
+	}
+    
+	SDL_LockSurface(src);
+	SDL_LockSurface(dest);
+
+	if(src->format->BitsPerPixel==32){
+		for(j=0;j<src->h;j++){
+			Uint32 *psrc=(Uint32*)((Uint8*)src->pixels+j*src->pitch);
+			Uint8 *pdest=(Uint8*)dest->pixels+(src->h-j-1)*4;
+			for(i=0;i<src->w;i++){
+				*(Uint32*)pdest=*psrc;
+				psrc++;
+				pdest+=dest->pitch;
+			}
+		}
+	}
+	else if(src->format->BitsPerPixel==16){
+		for(j=0;j<src->h;j++){
+			Uint16 *psrc=(Uint16*)((Uint8*)src->pixels+j*src->pitch);
+			Uint8 *pdest=(Uint8*)dest->pixels+(src->h-j-1)*2;
+			for(i=0;i<src->w;i++){
+				*(Uint16*)pdest=*psrc;
+				psrc++;
+				pdest+=dest->pitch;
+			}
+		}
+	}
+
+	else if(src->format->BitsPerPixel==24){
+		for(j=0;j<src->h;j++){
+			Uint8 *psrc=((Uint8*)src->pixels+j*src->pitch);
+			Uint8 *pdest=(Uint8*)dest->pixels+(src->h-j-1)*3;
+			for(i=0;i<src->w;i++){
+				*pdest=*psrc;
+				*(pdest+1)=*(psrc+1);
+				*(pdest+2)=*(psrc+2);
+				psrc+=3;
+				pdest+=dest->pitch;
+			}
+		}
+	}
+	else if(src->format->BitsPerPixel==8){
+		for(j=0;j<src->h;j++){
+			Uint8 *psrc=((Uint8*)src->pixels+j*src->pitch);
+			Uint8 *pdest=(Uint8*)dest->pixels+(src->h-j-1);
+			for(i=0;i<src->w;i++){
+				*pdest=*psrc;
+				psrc++;
+				pdest+=dest->pitch;
+			}
+		}
+	}
+
+    SDL_UnlockSurface(src);
+	SDL_UnlockSurface(dest);
+
+	SDL_SetColorKey(dest,SDL_SRCCOLORKEY|SDL_RLEACCEL ,src->format->colorkey);
+
+
+	return dest;
+    
+}
+
+//çŸ©å½¢å³è½¬90åº¦
+SDL_Rect RotateRect(const SDL_Rect *rect)
+{
+    SDL_Rect r;
+	r.x=(Sint16)(g_ScreenH-rect->y-rect->h);
+	r.y=rect->x;
+	r.w=rect->h;
+	r.h=rect->w;
+	return r;
+}
+
+//çŸ©å½¢å·¦è½¬90åº¦
+SDL_Rect RotateReverseRect(const SDL_Rect *rect)
+{
+    SDL_Rect r;
+	r.x=rect->y; 
+	r.y=(Sint16)(g_ScreenH-rect->x-rect->w);
+	r.w=rect->h;
+	r.h=rect->w;
+	return r;
+}
+
+

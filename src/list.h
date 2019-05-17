@@ -17,6 +17,12 @@
  * using the generic single-entry routines.
  */
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 struct list_head {
 	struct list_head *next, *prev;
 };
@@ -26,9 +32,9 @@ struct list_head {
 #define LIST_HEAD(name) \
 	struct list_head name = LIST_HEAD_INIT(name)
 
-#define INIT_LIST_HEAD(ptr) do { \
-	(ptr)->next = (ptr); (ptr)->prev = (ptr); \
-} while (0)
+#define INIT_LIST_HEAD(ptr) for(;;) { \
+	(ptr)->next = (ptr); (ptr)->prev = (ptr);break; \
+} 
 
 /*
  * Insert a new entry between two known consecutive entries. 
@@ -241,4 +247,11 @@ static   void list_splice_init(struct list_head *list,
 	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
 
 
+
+#ifdef __cplusplus
+}
 #endif
+
+
+#endif
+

@@ -1,42 +1,42 @@
 
-// Êä³öºº×ÖºÍ×Ö·û¼¯×ª»» 
+// è¾“å‡ºæ±‰å­—å’Œå­—ç¬¦é›†è½¬æ¢ 
 
 
-//Îª±£Ö¤Æ½Ì¨¼æÈİĞÔ£¬×Ô¼ºÉú³ÉÁËÒ»¸ögbk¼òÌå/·±Ìå/big5/unicodeµÄÂë±íÎÄ¼ş
-//Í¨¹ı´ËÎÄ¼ş£¬¼´¿É½øĞĞ¸÷ÖÖ¸ñÊ½µÄ×ª»» 
+//ä¸ºä¿è¯å¹³å°å…¼å®¹æ€§ï¼Œè‡ªå·±ç”Ÿæˆäº†ä¸€ä¸ªgbkç®€ä½“/ç¹ä½“/big5/unicodeçš„ç è¡¨æ–‡ä»¶
+//é€šè¿‡æ­¤æ–‡ä»¶ï¼Œå³å¯è¿›è¡Œå„ç§æ ¼å¼çš„è½¬æ¢ 
 
 #include <stdlib.h>
 #include "jymain.h"
 
 
-// ÏÔÊ¾TTF ×Ö·û´®
-// Îª¿ìËÙÏÔÊ¾£¬³ÌĞò½«±£´æÒÑ¾­´ò¿ªµÄÏàÓ¦×ÖºÅµÄ×ÖÌå½á¹¹¡£ÕâÑù×ö¿ÉÒÔ¼Ó¿ì³ÌĞòËÙ¶È
-// Îª¼ò»¯´úÂë£¬Ã»ÓĞÓÃÁ´±í£¬¶øÊÇ²ÉÓÃÊı×éÀ´±£´æ´ò¿ªµÄ×ÖÌå¡£
-// ÓÃÏÈ½øÏÈ³öµÄ·½·¨£¬Ñ­»·¹Ø±ÕÒÑ¾­´ò¿ªµÄ×ÖÌå¡£
-// ¿¼ÂÇµ½Ò»°ã´ò¿ªµÄ×ÖÌå²»¶à£¬±ÈÈç640*480Ä£Ê½Êµ¼ÊÉÏÖ»ÓÃÁË16*24*32ÈıÖÖ×ÖÌå¡£
-// ÉèÖÃÊı×éÎª10ÒÑ¾­×ã¹»¡£
+// æ˜¾ç¤ºTTF å­—ç¬¦ä¸²
+// ä¸ºå¿«é€Ÿæ˜¾ç¤ºï¼Œç¨‹åºå°†ä¿å­˜å·²ç»æ‰“å¼€çš„ç›¸åº”å­—å·çš„å­—ä½“ç»“æ„ã€‚è¿™æ ·åšå¯ä»¥åŠ å¿«ç¨‹åºé€Ÿåº¦
+// ä¸ºç®€åŒ–ä»£ç ï¼Œæ²¡æœ‰ç”¨é“¾è¡¨ï¼Œè€Œæ˜¯é‡‡ç”¨æ•°ç»„æ¥ä¿å­˜æ‰“å¼€çš„å­—ä½“ã€‚
+// ç”¨å…ˆè¿›å…ˆå‡ºçš„æ–¹æ³•ï¼Œå¾ªç¯å…³é—­å·²ç»æ‰“å¼€çš„å­—ä½“ã€‚
+// è€ƒè™‘åˆ°ä¸€èˆ¬æ‰“å¼€çš„å­—ä½“ä¸å¤šï¼Œæ¯”å¦‚640*480æ¨¡å¼å®é™…ä¸Šåªç”¨äº†16*24*32ä¸‰ç§å­—ä½“ã€‚
+// è®¾ç½®æ•°ç»„ä¸º10å·²ç»è¶³å¤Ÿã€‚
 
-static UseFont Font[FONTNUM];         //±£´æÒÑ´ò¿ªµÄ×ÖÌå
+static UseFont Font[FONTNUM];         //ä¿å­˜å·²æ‰“å¼€çš„å­—ä½“
 
 static int currentFont=0;
 
-//×Ö·û¼¯×ª»»Êı×é
-static Uint16 gbkj_f[128][256];        //GBK¼òÌå-->·±Ìå
-static Uint16 gbkf_j[128][256] ;
+//å­—ç¬¦é›†è½¬æ¢æ•°ç»„
 static Uint16 gbk_unicode[128][256] ;
 static Uint16 gbk_big5[128][256] ;
 static Uint16 big5_gbk[128][256] ;
+static Uint16 big5_unicode[128][256] ;
 
-extern  SDL_Surface* g_Surface;    //ÆÁÄ»±íÃæ
+extern  SDL_Surface* g_Surface;    //å±å¹•è¡¨é¢
+extern int g_Rotate;
 
-//³õÊ¼»¯
+//åˆå§‹åŒ–
 int InitFont()
 {
     int i;
 
-	TTF_Init();  // ³õÊ¼»¯sdl_ttf
+	TTF_Init();  // åˆå§‹åŒ–sdl_ttf
 
-    for(i=0;i<FONTNUM;i++){   //×ÖÌåÊı¾İ³õÖµ
+    for(i=0;i<FONTNUM;i++){   //å­—ä½“æ•°æ®åˆå€¼
         Font[i].size =0;
 	    Font[i].name=NULL;
 		Font[i].font =NULL;
@@ -45,12 +45,12 @@ int InitFont()
 	return 0;
 }
 
-//ÊÍ·Å×ÖÌå½á¹¹
+//é‡Šæ”¾å­—ä½“ç»“æ„
 int ExitFont()
 {
     int i;
 
-    for(i=0;i<FONTNUM;i++){  //ÊÍ·Å×ÖÌåÊı¾İ
+    for(i=0;i<FONTNUM;i++){  //é‡Šæ”¾å­—ä½“æ•°æ®
 		if(Font[i].font){
 			TTF_CloseFont(Font[i].font);
 		}
@@ -63,28 +63,28 @@ int ExitFont()
 }
 
 
-// ¸ù¾İ×ÖÌåÎÄ¼şÃûºÍ×ÖºÅ´ò¿ª×ÖÌå
-// size Îª°´ÏñËØ´óĞ¡µÄ×ÖºÅ
+// æ ¹æ®å­—ä½“æ–‡ä»¶åå’Œå­—å·æ‰“å¼€å­—ä½“
+// size ä¸ºæŒ‰åƒç´ å¤§å°çš„å­—å·
 static TTF_Font *GetFont(const char *filename,int size)
 {
     int i;
 	TTF_Font *myfont=NULL;
 	
-	for(i=0;i<FONTNUM;i++){   //  ÅĞ¶Ï×ÖÌåÊÇ·ñÒÑ´ò¿ª
+	for(i=0;i<FONTNUM;i++){   //  åˆ¤æ–­å­—ä½“æ˜¯å¦å·²æ‰“å¼€
 		if((Font[i].size ==size) && (Font[i].name) && (strcmp(filename,Font[i].name)==0) ){   
 			myfont=Font[i].font ;
 			break;
 		}
     }
 
-	if(myfont==NULL){    //Ã»ÓĞ´ò¿ª
-		myfont =TTF_OpenFont(filename,size);           //´ò¿ªĞÂ×ÖÌå
+	if(myfont==NULL){    //æ²¡æœ‰æ‰“å¼€
+		myfont =TTF_OpenFont(filename,size);           //æ‰“å¼€æ–°å­—ä½“
 		if(myfont==NULL){
-            fprintf(stderr,"GetFont error: can not open font file %s\n",filename);
+            JY_Error("GetFont error: can not open font file %s\n",filename);
 			return NULL;
 		}
 		Font[currentFont].size =size;
-		if(Font[currentFont].font)           //Ö±½Ó¹Ø±Õµ±Ç°×ÖÌå¡£
+		if(Font[currentFont].font)           //ç›´æ¥å…³é—­å½“å‰å­—ä½“ã€‚
             TTF_CloseFont(Font[currentFont].font);
 
         Font[currentFont].font=myfont; 
@@ -93,7 +93,7 @@ static TTF_Font *GetFont(const char *filename,int size)
         Font[currentFont].name =(char*)malloc(strlen(filename)+1);
 		strcpy(Font[currentFont].name,filename);
         
-        currentFont++;           // Ôö¼Ó¶ÓÁĞÈë¿Ú¼ÆÊı
+        currentFont++;           // å¢åŠ é˜Ÿåˆ—å…¥å£è®¡æ•°
 		if(currentFont==FONTNUM)                  
 			currentFont=0;
 	}
@@ -102,97 +102,163 @@ static TTF_Font *GetFont(const char *filename,int size)
 
 }
 
-// Ğ´×Ö·û´®
-// x,y ×ø±ê
-// str ×Ö·û´®
-// color ÑÕÉ«
-// size ×ÖÌå´óĞ¡£¬×ÖĞÎÎªËÎÌå¡£ 
-// fontname ×ÖÌåÃû
-// charset ×Ö·û¼¯ 0 GBK 1 big5
-// OScharset ÎŞÓÃ
+// å†™å­—ç¬¦ä¸²
+// x,y åæ ‡
+// str å­—ç¬¦ä¸²
+// color é¢œè‰²
+// size å­—ä½“å¤§å°ï¼Œå­—å½¢ä¸ºå®‹ä½“ã€‚ 
+// fontname å­—ä½“å
+// charset å­—ç¬¦é›† 0 GBK 1 big5
+// OScharset 0 ç®€ä½“æ˜¾ç¤º 1 ç¹ä½“æ˜¾ç¤º
 int JY_DrawStr(int x, int y, const char *str,int color,int size,const char *fontname, 
 			   int charset, int OScharset)
 {
-    SDL_Color c;   
+    SDL_Color c,c2;   
 	SDL_Surface *fontSurface=NULL;
+	int w,h;
+	SDL_Rect rect1,rect2,rect_dest;
 	SDL_Rect rect;
-	Uint8 *tmp;
-	int flag=0;
+	char tmp1[256],tmp2[256];
+    TTF_Font *myfont;
+	SDL_Surface *tempSurface;
 
-    TTF_Font *myfont=GetFont(fontname,size);
+
+	if(strlen(str)>127){
+		JY_Error("JY_DrawStr: string length more than 127: %s",str);
+	    return 0;
+	}
+
+    myfont=GetFont(fontname,size);
 	if(myfont==NULL)
 		return 1;
 
-    c.r=(color & 0xff0000) >>16;
-	c.g=(color & 0xff00)>>8;
-	c.b=(color & 0xff);
- 
-    tmp=(char*)malloc(2*strlen(str)+1);  //·ÖÅäÁ½±¶Ô­×Ö·û´®´óĞ¡µÄÄÚ´æ£¬±ÜÃâ×ª»»µ½unicodeÊ±Òç³ö
+    c.r=(Uint8) ((color & 0xff0000) >>16);
+	c.g=(Uint8) ((color & 0xff00)>>8);
+	c.b=(Uint8) ((color & 0xff));
 
-    if(charset==0){     //GBK
-        JY_CharSet(str,tmp,3);      
+	c2.r=c.r>>1;   //é˜´å½±è‰²
+	c2.b=c.b>>1;
+	c2.g=c.g>>1;
+
+
+    if(charset==0 &&  OScharset==0){//GBK -->unicodeç®€ä½“
+         JY_CharSet(str,tmp2,3);      
 	}
-	else if(charset==1){ //big5
-        JY_CharSet(str,tmp,2);
+	else if(charset==0 &&  OScharset==1){//GBK -->unicodeç¹ä½“
+        JY_CharSet(str,tmp1,1);
+        JY_CharSet(tmp1,tmp2,2);
+	}
+    else if(charset==1 &&  OScharset==0){ //big5-->unicodeç®€ä½“
+        JY_CharSet(str,tmp1,0);
+        JY_CharSet(tmp1,tmp2,3);
+	}
+	else if(charset==1 &&  OScharset==1){  ////big5-->unicodeç¹ä½“
+        JY_CharSet(str,tmp2,2);
 	}
 	else{
-        strcpy(tmp,str);
+        strcpy(tmp2,str);
 	}
 
-    fontSurface=TTF_RenderUNICODE_Solid(myfont, (Uint16*)tmp, c);  //Éú³É±íÃæ
+	 
+	if(g_Rotate==0){
+		rect=g_Surface->clip_rect; 
+	}
+	else{
+	    rect=RotateReverseRect(&g_Surface->clip_rect);
+	}
 
-	SafeFree(tmp);
+    TTF_SizeUNICODE(myfont, (Uint16*)tmp2, &w, &h);
+	
+	if( (x>=rect.x+rect.w) || (x+w+1) <=rect.x ||
+		(y>=rect.y+rect.h) || (y+h+1) <=rect.y){      // è¶…å‡ºè£å‰ªèŒƒå›´åˆ™ä¸æ˜¾ç¤º
+        return 1;
+	}
 
-	if(fontSurface==NULL)
+    fontSurface=TTF_RenderUNICODE_Solid(myfont, (Uint16*)tmp2, c);  //ç”Ÿæˆè¡¨é¢
+    
+    if(fontSurface==NULL)
 		return 1;
+    
+	rect1.x=(Sint16)x;
+	rect1.y=(Sint16)y;
+	rect1.w=(Uint16)fontSurface->w;
+	rect1.h=(Uint16)fontSurface->h;
 
-    rect.x=x;
-	rect.y=y;
+	if(g_Rotate==0){
+	    rect2=rect1;
 
-    SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect);    //±íÃæĞ´µÀÓÎÏ·±íÃæ 
-    SDL_FreeSurface(fontSurface);   //ÊÍ·Å±íÃæ
+		rect_dest.x=rect2.x+1;
+		rect_dest.y=rect2.y+1;
+		SDL_SetColors(fontSurface,&c2,1,1);
+		SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢--é˜´å½±è‰²
+
+		rect_dest.x=rect2.x;
+		rect_dest.y=rect2.y;
+		SDL_SetColors(fontSurface,&c,1,1);
+		SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢ 
+
+	}
+	else if(g_Rotate==1){
+        tempSurface=RotateSurface(fontSurface);
+        SDL_FreeSurface(fontSurface);
+		fontSurface=tempSurface;
+		rect2=RotateRect(&rect1);
+
+		rect_dest.x=rect2.x-1;
+		rect_dest.y=rect2.y+1;
+		SDL_SetColors(fontSurface,&c2,1,1);
+		SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢ --é˜´å½±è‰²
+
+		rect_dest.x=rect2.x;
+		rect_dest.y=rect2.y; 
+		SDL_SetColors(fontSurface,&c,1,1);
+		SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢ 
+        
+	}
+
+    SDL_FreeSurface(fontSurface);   //é‡Šæ”¾è¡¨é¢
     return 0;
 }
 
   
 
-// ºº×Ö×Ö·û¼¯×ª»»
+// æ±‰å­—å­—ç¬¦é›†è½¬æ¢
 // flag = 0   Big5 --> GBK     
 //      = 1   GBK  --> Big5    
 //      = 2   Big5 --> Unicode
 //      = 3   GBK  --> Unicode
-// ×¢ÒâÒª±£Ö¤destÓĞ×ã¹»µÄ¿Õ¼ä£¬Ò»°ã½¨ÒéÈ¡src³¤¶ÈµÄÁ½±¶+1£¬±£Ö¤È«Ó¢ÎÄ×Ö·ûÒ²ÄÜ×ª»¯Îªunicode
+// æ³¨æ„è¦ä¿è¯destæœ‰è¶³å¤Ÿçš„ç©ºé—´ï¼Œä¸€èˆ¬å»ºè®®å–srcé•¿åº¦çš„ä¸¤å€+2ï¼Œä¿è¯å…¨è‹±æ–‡å­—ç¬¦ä¹Ÿèƒ½è½¬åŒ–ä¸ºunicode
 int  JY_CharSet(const char *src, char *dest, int flag)
 {
  
-    char *psrc,*pdest;
-    unsigned char b0,b1;
+    Uint8 *psrc,*pdest;
+    Uint8 b0,b1;
 	int d0;
 	Uint16 tmpchar;
 
-	psrc=(char*)src;
-	pdest=dest;
+	psrc=(Uint8*)src;
+	pdest=(Uint8*)dest;
 
-    while(1){
+    for(;;){
         b0=*psrc;
-		if(b0==0){       //×Ö·û´®½áÊø
+		if(b0==0){       //å­—ç¬¦ä¸²ç»“æŸ
 			if( (flag==0) || (flag==1) ){
 				*pdest=0;
 				break;
 			}
-			else{    //unicode½áÊø±êÖ¾ 0x0000?
+			else{    //unicodeç»“æŸæ ‡å¿— 0x0000?
 				*pdest=0;
 				*(pdest+1)=0;
 				break;                
 			}
 		}
-		if(b0<128){      //Ó¢ÎÄ×Ö·û
-			if( (flag==0) || (flag==1) ){  //²»×ª»»
+		if(b0<128){      //è‹±æ–‡å­—ç¬¦
+			if( (flag==0) || (flag==1) ){  //ä¸è½¬æ¢
 				*pdest=b0;
 				pdest++;
 				psrc++;
 			}
-			else{                //unicode ºóÃæ¼Ó¸ö0
+			else{                //unicode åé¢åŠ ä¸ª0
 				*pdest=b0;
 				pdest++;
 				*pdest=0;
@@ -200,9 +266,9 @@ int  JY_CharSet(const char *src, char *dest, int flag)
 				psrc++;                
 			}
 		}
-		else{              //ÖĞÎÄ×Ö·û
+		else{              //ä¸­æ–‡å­—ç¬¦
 			b1=*(psrc+1);
-            if(b1==0){     // ·ÇÕı³£½áÊø
+            if(b1==0){     // éæ­£å¸¸ç»“æŸ
                 *pdest='?';
 				*(pdest+1)=0;
 				break;
@@ -211,29 +277,28 @@ int  JY_CharSet(const char *src, char *dest, int flag)
 				d0=b0+b1*256;
 				switch(flag){
 				case 0:   //Big5 --> GBK    
-					//tmpchar=big5_gbk[d0];
-					tmpchar=big5_gbk[b0-128][b1];
-					if(gbkf_j[(tmpchar & 0xff)-128][( tmpchar &0xff00)>>8]>0)
-					    tmpchar=gbkf_j[(tmpchar & 0xff)-128][( tmpchar &0xff00)>>8];
+             	    tmpchar=big5_gbk[b0-128][b1];
 					break;
 				case 1:   //GBK  --> Big5  
-					if(gbkj_f[b0-128][b1]>0)
-					    tmpchar=gbkj_f[b0-128][b1];
-					else
-						tmpchar=d0;
-											
-					tmpchar=gbk_big5[(tmpchar & 0xff)-128][( tmpchar &0xff00)>>8];
+					tmpchar=gbk_big5[b0-128][b1];
 					break;
 				case 2:   //Big5 --> Unicode
-					tmpchar=big5_gbk[b0][b1];
-					tmpchar=gbk_unicode[(tmpchar & 0xff)-128][( tmpchar &0xff00)>>8];
+					tmpchar=big5_unicode[b0-128][b1];
 					break;
 				case 3:   //GBK  --> Unicode
 					tmpchar=gbk_unicode[b0-128][b1];
 					break;                
+				default:
+					tmpchar=0;
 				}
-
-                *(Uint16*)pdest=tmpchar;
+                
+				if(tmpchar !=0){
+                    *(Uint16*)pdest=tmpchar;
+				}
+				else{
+                    *pdest='?';
+					*(pdest+1)='?';
+				}
 
 				pdest=pdest+2;
 				psrc=psrc+2;
@@ -245,58 +310,57 @@ int  JY_CharSet(const char *src, char *dest, int flag)
 }
 
 
-//¼ÓÔØÂë±íÎÄ¼ş
-//Âë±íÎÄ¼ş°´ÕÕGBKË³ĞòÅÅĞò£¬Ã¿¸öGBK×Ö·û¶ÔÓ¦Èı¸ö×Ö·û£ºgbkf,big5,unicode
+//åŠ è½½ç è¡¨æ–‡ä»¶
+//ç è¡¨æ–‡ä»¶é¡ºåºï¼š æŒ‰GBKæ’åˆ—ï¼Œunicodeï¼Œbig5ã€‚ç„¶åæŒ‰big5æ’åˆ—ï¼Œunicodeå’Œgbkã€‚
 int LoadMB(const char* mbfile)
 {
 	FILE *fp;
 	int i,j;
 
-	Uint16 gbk,gbkf,big5,unicode;
+	Uint16 gbk,big5,unicode;
  
 	fp=fopen(mbfile,"rb");
     if(fp==NULL){
-		fprintf(stderr,"cannot open mbfile");
+		JY_Error("cannot open mbfile");
 		return 1;
 	}
 
-
 	for(i=0;i<128;i++){
 		for(j=0;j<256;j++){
-			gbkj_f[i][j]=0;
-			gbkf_j[i][j]=0;
 			gbk_unicode[i][j]=0;
- 
 			gbk_big5[i][j]=0;
 			big5_gbk[i][j]=0;
+			big5_unicode[i][j]=0;
 		}
 	}
 
-    for(i=0x81;i<=0xfe;i++)
+	for(i=0x81;i<=0xfe;i++){
 		for(j=0x40;j<=0xfe;j++){
 			if( j != 0x7f){
-				gbk=i+j*256;
-				fread(&gbkf,2,1,fp);
-				fread(&big5,2,1,fp);
 				fread(&unicode,2,1,fp);
-                
-				if(gbk!=gbkf){
- 				    gbkj_f[i-128][j]=gbkf;
-				    gbkf_j[(gbkf&0xff)-128][(gbkf&0xff00)>>8]=gbk;
-				}
+				fread(&big5,2,1,fp);
 				gbk_unicode[i-128][j]=unicode;
-
-				if(gbkj_f[i-128][j]==0){   //Ã»ÓĞ¼òÌå
-				    gbk_big5[i-128][j]=big5;
-				    big5_gbk[(big5 & 0xff)-128][( big5 &0xff00)>>8]=gbk;
-				}
+				gbk_big5[i-128][j]=big5;
             }
 		}
+	}
+
+   for(i=0xa0;i<=0xfe;i++){
+		for(j=0x40;j<=0xfe;j++){
+			if( j <= 0x7e || j>=0xa1){
+				fread(&unicode,2,1,fp);
+				fread(&gbk,2,1,fp);
+				big5_unicode[i-128][j]=unicode;
+				big5_gbk[i-128][j]=gbk;
+			}
+		}
+   }
 
 	fclose(fp);
     
     return 0;
 }
+
 
 
  

@@ -112,9 +112,8 @@ end
 
 
     inp=io.open("talk.txt","r");
-    outp=io.open("talk.lua","w");
+    outp=io.open("oldtalk.grp","w");
     local s=inp:read("*l");
-    outp:write(string.format('oldtalk={};\n',id,talk));
     while true do
         local s=inp:read("*l");
         if s==nil then
@@ -125,9 +124,9 @@ end
             local id=tonumber(string.sub(s,i,j))
             i,j=string.find(s,'"%x+",',j+1);        --匹配带引号的数字
             i,j=string.find(s,'".*"',j+1);          --匹配最后的字符串
-            local talk="[==[" .. string.sub(s,i+1,j-1) .. "]==]";    --用"[==["替换字符串两端的引号
+            local talk=string.sub(s,i+1,j-1)
 			local newtalk=string.gsub(talk,'""','"');           --把字符串中的""替换成"
-            outp:write(string.format('oldtalk[%d]=%s;\n',id,newtalk));
+            outp:write(string.format('%s\n',newtalk));
         end
     end
     inp:close();

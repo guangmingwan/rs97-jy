@@ -1,17 +1,17 @@
  
-// Óëlua¿âµÄ½»»¥º¯Êı,Ê¹ÓÃlua5.1.2°æ
+// ä¸luaåº“çš„äº¤äº’å‡½æ•°,ä½¿ç”¨lua5.1.2ç‰ˆ
 
 
   
 #include <stdio.h>
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include "jymain.h"
 
 
 
-//ÒÔÏÂÎªËùÓĞ°ü×°µÄlua½Ó¿Úº¯Êı£¬¶ÔÓ¦ÓÚÃ¿¸öÊµ¼ÊµÄº¯Êı
+//ä»¥ä¸‹ä¸ºæ‰€æœ‰åŒ…è£…çš„luaæ¥å£å‡½æ•°ï¼Œå¯¹åº”äºæ¯ä¸ªå®é™…çš„å‡½æ•°
 
 int HAPI_DrawStr(lua_State *pL)
 {
@@ -117,8 +117,8 @@ int HAPI_EnableKeyRepeat(lua_State *pL)
 
 int HAPI_ShowSurface(lua_State *pL)
 {
-    
-	JY_ShowSurface();  
+	int flag=(int)lua_tonumber(pL,1);
+    JY_ShowSurface(flag);
 	return 0;
 }
 
@@ -126,7 +126,7 @@ int HAPI_ShowSurface(lua_State *pL)
 
 int HAPI_GetTime(lua_State *pL)
 {
-    int t;
+    double t;
 	t=JY_GetTime();
 	lua_pushnumber(pL,t);
 	return 1;
@@ -153,14 +153,14 @@ int HAPI_Debug(lua_State *pL)
 
 int HAPI_CharSet(lua_State *pL)
 {
-    int length;
+    size_t length;
 	const char *src=lua_tostring(pL,1);
 	int flag=(int)lua_tonumber(pL,2);
     char *dest;
 
 	length =strlen(src);
 
-    dest=(char*)malloc(length+1);
+    dest=(char*)malloc(length+2);
 
     JY_CharSet(src,dest,flag);
 
@@ -189,16 +189,6 @@ int HAPI_SetClip(lua_State *pL)
 
 	return 0;
 }
-
- 
-
-
-
-
-
-
-
-
 
 
 int HAPI_PlayMIDI(lua_State *pL)
@@ -251,11 +241,11 @@ int HAPI_PicInit(lua_State *pL)
 int HAPI_PicLoadFile(lua_State *pL)
 {
  
-	const char *str=lua_tostring(pL,1);
-	int id=(int)lua_tonumber(pL,2);
- 
+	const char *idx=lua_tostring(pL,1);
+	const char *grp=lua_tostring(pL,2);
+	int id=(int)lua_tonumber(pL,3); 
   
-    JY_PicLoadFile(str,id);
+    JY_PicLoadFile(idx,grp,id);
  
 	return 0;
 }
@@ -288,12 +278,15 @@ int HAPI_GetPicXY(lua_State *pL)
 	int fileid=(int)lua_tonumber(pL,1);
 	int picid=(int)lua_tonumber(pL,2);
 
-	int w,h;
+	int w,h,xoff,yoff;
 	
-	JY_GetPicXY(fileid,picid,&w,&h);
+	JY_GetPicXY(fileid,picid,&w,&h,&xoff,&yoff);
 	lua_pushnumber(pL,w);
 	lua_pushnumber(pL,h);
-	return 2;
+	lua_pushnumber(pL,xoff);
+	lua_pushnumber(pL,yoff);
+
+	return 4;
 }
 
 
@@ -311,7 +304,9 @@ int HAPI_LoadMMap(lua_State *pL)
 	const char *buildy=lua_tostring(pL,5);
 	int xmax=(int)lua_tonumber(pL,6);
 	int ymax=(int)lua_tonumber(pL,7);
-    JY_LoadMMap(earth,surface,building,buildx,buildy,xmax,ymax);
+	int x=(int)lua_tonumber(pL,8);
+	int y=(int)lua_tonumber(pL,9);
+    JY_LoadMMap(earth,surface,building,buildx,buildy,xmax,ymax,x,y);
 
 	return 0;
 }
@@ -321,7 +316,7 @@ int HAPI_DrawMMap(lua_State *pL)
 {
 	int x=(int)lua_tonumber(pL,1);
 	int y=(int)lua_tonumber(pL,2);
-	int mypic=(int)lua_tonumber(pL,3);
+	int mypic=(int)lua_tonumber(pL,3);	
 
     JY_DrawMMap(x,y,mypic);
 	return 0;
@@ -355,8 +350,6 @@ int HAPI_FullScreen(lua_State *pL)
  
 int HAPI_LoadSMap(lua_State *pL)
 {
- 
-
 	const char *Sfilename=lua_tostring(pL,1);
 	const char *tempfilename=lua_tostring(pL,2);
 	int num=(int)lua_tonumber(pL,3);
@@ -375,9 +368,7 @@ int HAPI_LoadSMap(lua_State *pL)
  
 
 int HAPI_SaveSMap(lua_State *pL)
-{
- 
- 
+{ 
 	const char *Sfilename=lua_tostring(pL,1);
 	const char *Dfilename=lua_tostring(pL,2); 
     
@@ -465,12 +456,9 @@ int HAPI_DrawSMap(lua_State *pL)
 }
 
 
-
-
 int HAPI_LoadWarMap(lua_State *pL)
 {
- 
-	const char *WarIDXfilename=lua_tostring(pL,1);
+ 	const char *WarIDXfilename=lua_tostring(pL,1);
 	const char *WarGRPfilename=lua_tostring(pL,2);
     int mapid=(int)lua_tonumber(pL,3);
 	int num=(int)lua_tonumber(pL,4);
@@ -491,7 +479,6 @@ int HAPI_GetWarMap(lua_State *pL)
     int y=(int)lua_tonumber(pL,2);
     int level=(int)lua_tonumber(pL,3);
  
-
 	int v;
 	v=JY_GetWarMap(x,y,level);
 
@@ -531,26 +518,8 @@ int HAPI_DrawWarMap(lua_State *pL)
 	int y=(int)lua_tonumber(pL,3);
 	int v1=(int)lua_tonumber(pL,4);
 	int v2=(int)lua_tonumber(pL,5);
-    JY_DrawWarMap(flag,x,y,v1,v2);
-	return 0;
-}
-
-
-
-
-int HAPI_DrawWarNum(lua_State *pL)
-{
- 
-	int x=(int)lua_tonumber(pL,1);
-	int y=(int)lua_tonumber(pL,2);
-	int height=(int)lua_tonumber(pL,3);
-	int color=(int)lua_tonumber(pL,4);
-	int size=(int)lua_tonumber(pL,5);
-	const char *fontname=lua_tostring(pL,6);
-	int charset=(int)lua_tonumber(pL,7);
-	int OScharset=(int)lua_tonumber(pL,8);
-    JY_DrawWarNum(x,y,height,color,size,fontname,charset,OScharset);
-
+	int v3=(int)lua_tonumber(pL,6);
+    JY_DrawWarMap(flag,x,y,v1,v2,v3);
 	return 0;
 }
 
@@ -558,8 +527,9 @@ int HAPI_DrawWarNum(lua_State *pL)
 
 
 
-// byteÊı×éluaº¯Êı
-/*  lua µ÷ÓÃĞÎÊ½£º(×¢Òâ£¬Î»ÖÃ¶¼ÊÇ´Ó0¿ªÊ¼
+
+// byteæ•°ç»„luaå‡½æ•°
+/*  lua è°ƒç”¨å½¢å¼ï¼š(æ³¨æ„ï¼Œä½ç½®éƒ½æ˜¯ä»0å¼€å§‹
      handle=Byte_create(size);
 	 Byte_release(h);
 	 handle=Byte_loadfile(h,filename,start,length);
@@ -577,11 +547,11 @@ int HAPI_DrawWarNum(lua_State *pL)
 int Byte_create(lua_State *pL)
 {
 	int x=(int)lua_tonumber(pL,1);
-    char *p=(char *)lua_newuserdata(pL,x);                //´´½¨userdata£¬²»ĞèÒªÊÍ·ÅÁË¡£
+    char *p=(char *)lua_newuserdata(pL,x);                //åˆ›å»ºuserdataï¼Œä¸éœ€è¦é‡Šæ”¾äº†ã€‚
 	int i;
 
 	if(p==NULL){
-		fprintf(stderr,"Byte_create:cannot malloc memory\n");
+		JY_Error("Byte_create:cannot malloc memory\n");
 		return 1;
 	}
 	for(i=0;i<x;i++)
@@ -596,14 +566,11 @@ int Byte_loadfile(lua_State *pL)
 	char *p=(char *)lua_touserdata(pL,1);
 	const char *filename=lua_tostring(pL,2);
 	int start=(int)lua_tonumber(pL,3);
-	int length=(int)lua_tonumber(pL,4);
-
- 
+	int length=(int)lua_tonumber(pL,4); 
     
 	FILE *fp;
     if((fp=fopen(filename,"rb"))==NULL){
-        fprintf(stderr,"Byte_loadfile:file not open ---%s",filename);
-		
+        JY_Error("Byte_loadfile:file not open ---%s",filename);		
 		return 1;
 	}
 	fseek(fp,start,SEEK_SET);
@@ -621,7 +588,7 @@ int Byte_savefile(lua_State *pL)
 
 	FILE *fp;
     if((fp=fopen(filename,"r+b"))==NULL){
-        fprintf(stderr,"file not open ---%s",filename);
+        JY_Error("file not open ---%s",filename);
 		return 1;
 	}
 	fseek(fp,start,SEEK_SET);
@@ -711,7 +678,7 @@ int Byte_setstr(lua_State *pL)
 	int length=(int)lua_tonumber(pL,3);
 	const char *s=lua_tostring(pL,4);
 	int i;
-	int l=strlen(s);
+	int l=(int)strlen(s);
 	for(i=0;i<length;i++)
 		p[start+i]=0;
 	

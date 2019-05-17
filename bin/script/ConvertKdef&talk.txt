@@ -16,15 +16,13 @@
 
 2. 确保当前目录下存在oldevent目录。保存生成的事件文件。如果没有，则手工建立
 
-3. 运行批处理文件 convertkdef2.bat。则自动生成talk.lua，在oldevent目录下生成
+3. 运行批处理文件 convertkdef2.bat。则自动生成oldtalk.grp。并在oldevent目录下生成
    事件文件oldevent_xxx.lua，每个事件一个文件
 
 4. 事件文件中有几个错误。需要进行修改：
    把当前目录下的oldevent_xxx.lua文件覆盖到oldevent目录
 
-5. 把kdef.lua改名为old_kdef.lua
-
-6. 结束。
+5. 结束。
 
 
 

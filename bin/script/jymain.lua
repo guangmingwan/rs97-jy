@@ -13,11 +13,9 @@
 
 --µ¼ÈëÆäËûÄ£¿é¡£Ö®ËùÒÔ×ö³Éº¯ÊıÊÇÎªÁË±ÜÃâ±àÒë²é´íÊ±±àÒëÆ÷»áÑ°ÕÒÕâĞ©Ä£¿é¡£
 function IncludeFile()              --µ¼ÈëÆäËûÄ£¿é
-	require("config");
-    package.path=CONFIG.ScriptLuaPath;  ---ÉèÖÃ¼ÓÔØÂ·¾¶
-    require("old_talk");
-	require("jyconst");
-    require("jymodify");
+    --dofile("config.lua");       --´ËÎÄ¼şÔÚCº¯ÊıÖĞÔ¤ÏÈ¼ÓÔØ¡£ÕâÀï¾Í²»¼ÓÔØÁË
+    dofile(CONFIG.ScriptPath .. "jyconst.lua");
+    dofile(CONFIG.ScriptPath .. "jymodify.lua");
 end
 
 
@@ -48,7 +46,14 @@ function SetGlobal()   --ÉèÖÃÓÎÏ·ÄÚ²¿Ê¹ÓÃµÄÈ«³Ì±äÁ¿
 
    JY.MyCurrentPic=0;       --Ö÷½Çµ±Ç°×ßÂ·ÌùÍ¼ÔÚÌùÍ¼ÎÄ¼şÖĞÆ«ÒÆ
    JY.MyPic=0;              --Ö÷½Çµ±Ç°ÌùÍ¼
-   JY.Mytick=0;             --Ö÷½ÇÃ»ÓĞ×ßÂ·µÄ³ÖĞøÖ¡Êı
+   JY.MyTick=0;             --Ö÷½ÇÃ»ÓĞ×ßÂ·µÄ³ÖĞøÖ¡Êı
+   JY.MyTick2=0;            --ÏÔÊ¾ÊÂ¼ş¶¯»­µÄ½ÚÅÄ
+
+   JY.EnterSceneXY=nil;     --±£´æ½øÈë³¡¾°µÄ×ø±ê£¬ÓĞÖµ¿ÉÒÔ½øÈë£¬ÎªnilÔòÖØĞÂ¼ÆËã¡£
+
+   JY.oldMMapX=-1;          --ÉÏ´ÎÏÔÊ¾Ö÷µØÍ¼µÄ×ø±ê¡£ÓÃÀ´ÅĞ¶ÏÊÇ·ñĞèÒªÈ«²¿ÖØ»æÆÁÄ»
+   JY.oldMMapY=-1;
+   JY.oldMMapPic=-1;        --ÉÏ´ÎÏÔÊ¾Ö÷µØÍ¼Ö÷½ÇÌùÍ¼
 
    JY.SubScene=-1;          --µ±Ç°×Ó³¡¾°±àºÅ
    JY.SubSceneX=0;          --×Ó³¡¾°ÏÔÊ¾Î»ÖÃÆ«ÒÆ£¬³¡¾°ÒÆ¶¯Ö¸ÁîÊ¹ÓÃ
@@ -59,6 +64,18 @@ function SetGlobal()   --ÉèÖÃÓÎÏ·ÄÚ²¿Ê¹ÓÃµÄÈ«³Ì±äÁ¿
    JY.CurrentD=-1;          --µ±Ç°µ÷ÓÃD*µÄ±àºÅ
    JY.OldDPass=-1;          --ÉÏ´Î´¥·¢Â·¹ıÊÂ¼şµÄD*±àºÅ, ±ÜÃâ¶à´Î´¥·¢
    JY.CurrentEventType=-1   --µ±Ç°´¥·¢ÊÂ¼şµÄ·½Ê½ 1 ¿Õ¸ñ 2 ÎïÆ· 3 Â·¹ı
+
+   JY.oldSMapX=-1;          --ÉÏ´ÎÏÔÊ¾³¡¾°µØÍ¼µÄ×ø±ê¡£ÓÃÀ´ÅĞ¶ÏÊÇ·ñĞèÒªÈ«²¿ÖØ»æÆÁÄ»
+   JY.oldSMapY=-1;
+   JY.oldSMapXoff=-1;       --ÉÏ´Î³¡¾°Æ«ÒÆ
+   JY.oldSMapYoff=-1;
+   JY.oldSMapPic=-1;        --ÉÏ´ÎÏÔÊ¾³¡¾°µØÍ¼Ö÷½ÇÌùÍ¼
+
+   JY.D_Valid=nil           --¼ÇÂ¼µ±Ç°³¡¾°ÓĞĞ§µÄDµÄ±àºÅ£¬Ìá¸ßËÙ¶È£¬²»ÓÃÃ¿´ÎÏÔÊ¾¶¼¼ÆËãÁË¡£ÈôÎªnilÔòÖØĞÂ¼ÆËã
+   JY_D_Valld_Num=0;        --µ±Ç°³¡¾°ÓĞĞ§µÄD¸öÊı
+
+   JY.D_PicChange={}        --¼ÇÂ¼ÊÂ¼ş¶¯»­¸Ä±ä£¬ÒÔ¼ÆËãClip
+   JY.NumD_PicChange=0;     --ÊÂ¼ş¶¯»­¸Ä±äµÄ¸öÊı
 
    JY.CurrentThing=-1;      --µ±Ç°Ñ¡ÔñÎïÆ·£¬´¥·¢ÊÂ¼şÊ¹ÓÃ
 
@@ -72,9 +89,7 @@ function SetGlobal()   --ÉèÖÃÓÎÏ·ÄÚ²¿Ê¹ÓÃµÄÈ«³Ì±äÁ¿
    JY.SceneNewEventFunction={};     --µ÷ÓÃ³¡¾°ÊÂ¼şº¯Êı£¬SetModifyº¯ÊıÊ¹ÓÃ£¬¶¨ÒåÊ¹ÓÃĞÂ³¡¾°ÊÂ¼ş´¥·¢µÄº¯Êı
 
    WAR={};     --Õ½¶·Ê¹ÓÃµÄÈ«³Ì±äÁ¿¡£¡£ÕâÀïÕ¼¸öÎ»ÖÃ£¬ÒòÎª³ÌĞòºóÃæ²»ÔÊĞí¶¨ÒåÈ«¾Ö±äÁ¿ÁË¡£¾ßÌåÄÚÈİÔÚWarSetGlobalº¯ÊıÖĞ
-
 end
-
 
 function JY_Main()        --Ö÷³ÌĞòÈë¿Ú
 	os.remove("debug.txt");        --Çå³ıÒÔÇ°µÄdebugÊä³ö
@@ -90,6 +105,8 @@ function JY_Main_sub()        --ÕæÕıµÄÓÎÏ·Ö÷³ÌĞòÈë¿Ú
     IncludeFile();         --µ¼ÈëÆäËûÄ£¿é
     SetGlobalConst();    --ÉèÖÃÈ«³Ì±äÁ¿CC, ³ÌĞòÊ¹ÓÃµÄ³£Á¿
     SetGlobal();         --ÉèÖÃÈ«³Ì±äÁ¿JY
+
+    GenTalkIdx();        --Éú³É¶Ô»°idx
 
     SetModify();         --ÉèÖÃ¶Ôº¯ÊıµÄĞŞ¸Ä£¬¶¨ÒåĞÂµÄÎïÆ·£¬ÊÂ¼şµÈµÈ
 
@@ -112,7 +129,7 @@ function JY_Main_sub()        --ÕæÕıµÄÓÎÏ·Ö÷³ÌĞòÈë¿Ú
     lib.PicInit(CC.PaletteFile);       --¼ÓÔØÔ­À´µÄ256É«µ÷É«°å
 
     lib.PlayMPEG(CONFIG.DataPath .. "start.mpg",VK_ESCAPE);
-	lib.FillColor(0,0,0,0,0);
+
 	Cls();
 
     PlayMIDI(16);
@@ -126,6 +143,10 @@ function JY_Main_sub()        --ÕæÕıµÄÓÎÏ·Ö÷³ÌĞòÈë¿Ú
 	local menuReturn=ShowMenu(menu,3,0,menux,CC.StartMenuY,0,0,0,0,CC.StartMenuFontSize,C_STARTMENU, C_RED)
 
     if menuReturn == 1 then        --ÖØĞÂ¿ªÊ¼ÓÎÏ·
+		Cls();
+		DrawString(menux,CC.StartMenuY,"ÇëÉÔºò...",C_RED,CC.StartMenuFontSize);
+		ShowScreen();
+
 		NewGame();          --ÉèÖÃĞÂÓÎÏ·Êı¾İ
 
         JY.SubScene=CC.NewGameSceneID;         --ĞÂÓÎÏ·Ö±½Ó½øÈë³¡¾°
@@ -139,17 +160,15 @@ function JY_Main_sub()        --ÕæÕıµÄÓÎÏ·Ö÷³ÌĞòÈë¿Ú
         JY.MMAPMusic=-1;
 
  	    CleanMemory();
-	    lib.PicLoadFile(CC.SMAPPicFile,0);      --¼ÓÔØ³¡¾°ÌùÍ¼ÎÄ¼ş
-	    lib.PicLoadFile(CC.HeadPicFile,1);
-	    lib.PicLoadFile(CC.ThingPicFile,2);
 
-        PlayMIDI(JY.Scene[JY.SubScene]["½øÃÅÒôÀÖ"]);
+		Init_SMap(0);
 
-        JY.SubSceneX=0;
-        JY.SubSceneY=0;
-        DrawSMap();
-        lib.ShowSlow(50,0)
+        if CC.NewGameEvent>0 then
+		   oldCallEvent(CC.NewGameEvent);
+	    end
+
 	elseif menuReturn == 2 then         --ÔØÈë¾ÉµÄ½ø¶È
+		Cls();
     	local loadMenu={ {"½ø¶ÈÒ»",nil,1},
 	                     {"½ø¶È¶ş",nil,1},
 	                     {"½ø¶ÈÈı",nil,1} };
@@ -160,8 +179,9 @@ function JY_Main_sub()        --ÕæÕıµÄÓÎÏ·Ö÷³ÌĞòÈë¿Ú
 		Cls();
 		DrawString(menux,CC.StartMenuY,"ÇëÉÔºò...",C_RED,CC.StartMenuFontSize);
 		ShowScreen();
-
         LoadRecord(r);
+		Cls();
+		ShowScreen();
 		JY.Status=GAME_FIRSTMMAP;
 
 	elseif menuReturn == 3 then
@@ -175,8 +195,8 @@ end
 function CleanMemory()            --ÇåÀíluaÄÚ´æ
     if CONFIG.CleanMemory==1 then
 		 collectgarbage("collect");
+		 --lib.Debug(string.format("Lua memory=%d",collectgarbage("count")));
     end
-
 end
 
 function NewGame()     --Ñ¡ÔñĞÂÓÎÏ·£¬ÉèÖÃÖ÷½Ç³õÊ¼ÊôĞÔ
@@ -254,31 +274,28 @@ function Game_Cycle()       --ÓÎÏ·Ö÷Ñ­»·
     lib.Debug("Start game cycle");
 
     while JY.Status ~=GAME_END do
-        local t1=lib.GetTime();
+        local tstart=lib.GetTime();
 
-	    JY.Mytick=JY.Mytick+1;    --20¸ö½ÚÅÄÎŞ»÷¼ü£¬ÔòÖ÷½Ç±äÎªÕ¾Á¢×´Ì¬
-		if JY.Mytick%20==0 then
+	    JY.MyTick=JY.MyTick+1;    --20¸ö½ÚÅÄÎŞ»÷¼ü£¬ÔòÖ÷½Ç±äÎªÕ¾Á¢×´Ì¬
+	    JY.MyTick2=JY.MyTick2+1;    --20¸ö½ÚÅÄÎŞ»÷¼ü£¬ÔòÖ÷½Ç±äÎªÕ¾Á¢×´Ì¬
+
+		if JY.MyTick==20 then
             JY.MyCurrentPic=0;
+			JY.MyTick=0;
 		end
 
-        if JY.Mytick%1000==0 then
-            JY.MYtick=0;
+        if JY.MyTick2==1000 then
+            JY.MYtick2=0;
         end
 
         if JY.Status==GAME_FIRSTMMAP then  --Ê×´ÎÏÔÊ¾Ö÷³¡¾°£¬ÖØĞÂµ÷ÓÃÖ÷³¡¾°ÌùÍ¼£¬½¥±äÏÔÊ¾¡£È»ºó×ªµ½Õı³£ÏÔÊ¾
-			lib.PicInit();
 			CleanMemory();
             lib.ShowSlow(50,1)
-
-			lib.LoadMMap(CC.MMapFile[1],CC.MMapFile[2],CC.MMapFile[3],
-		            CC.MMapFile[4],CC.MMapFile[5],CC.MWidth,CC.MHeight);
-
-            lib.PicLoadFile(CC.MMAPPicFile,0);
-            lib.PicLoadFile(CC.HeadPicFile,1);
-            lib.PicLoadFile(CC.ThingPicFile,2);
-
-            PlayMIDI(16);
+            JY.MmapMusic=16;
             JY.Status=GAME_MMAP;
+
+            Init_MMap();
+
             lib.DrawMMap(JY.Base["ÈËX"],JY.Base["ÈËY"],GetMyPic());
 			lib.ShowSlow(50,0);
         elseif JY.Status==GAME_MMAP then
@@ -286,25 +303,50 @@ function Game_Cycle()       --ÓÎÏ·Ö÷Ñ­»·
  		elseif JY.Status==GAME_SMAP then
             Game_SMap()
 		end
-        local t2=lib.GetTime();
 
-		if t2-t1<CC.Frame then
-            lib.Delay(CC.Frame-(t2-t1));
+		collectgarbage("step",0);
+
+		local tend=lib.GetTime();
+
+		if tend-tstart<CC.Frame then
+            lib.Delay(CC.Frame-(tend-tstart));
 	    end
 	end
 end
 
 
+function Init_MMap()   --³õÊ¼»¯Ö÷µØÍ¼Êı¾İ
+	lib.PicInit();
+	lib.LoadMMap(CC.MMapFile[1],CC.MMapFile[2],CC.MMapFile[3],
+			CC.MMapFile[4],CC.MMapFile[5],CC.MWidth,CC.MHeight,JY.Base["ÈËX"],JY.Base["ÈËY"]);
+
+	lib.PicLoadFile(CC.MMAPPicFile[1],CC.MMAPPicFile[2],0);
+	lib.PicLoadFile(CC.HeadPicFile[1],CC.HeadPicFile[2],1);
+	if CC.LoadThingPic==1 then
+	    lib.PicLoadFile(CC.ThingPicFile[1],CC.ThingPicFile[2],2);
+	end
+
+	JY.EnterSceneXY=nil;         --ÉèÎª¿Õ£¬Ç¿ÖÆÖØĞÂÉú³É³¡¾°Èë¿ÚÊı¾İ¡£·ÀÖ¹ÓĞÊÂ¼ş¸ü¸ÄÁË³¡¾°Èë¿Ú¡£
+	JY.oldMMapX=-1;
+	JY.oldMMapY=-1;
+
+    PlayMIDI(JY.MmapMusic);
+end
+
+
 function Game_MMap()      --Ö÷µØÍ¼
+
     local direct = -1;
     local keypress = lib.GetKey();
     if keypress ~= -1 then
-	    JY.Mytick=0;
+	    JY.MyTick=0;
 		if keypress==VK_ESCAPE then
 			MMenu();
 			if JY.Status==GAME_FIRSTMMAP then
 				return ;
 			end
+			JY.oldMMapX=-1;         --Ç¿ÖÆÖØ»æ
+			JY.oldMMapY=-1;
 		elseif keypress==VK_UP then
 			direct=0;
 		elseif keypress==VK_DOWN then
@@ -316,10 +358,8 @@ function Game_MMap()      --Ö÷µØÍ¼
 		end
     end
 
-
     local x,y;              --°´ÕÕ·½Ïò¼üÒªµ½´ïµÄ×ø±ê
     if direct ~= -1 then   --°´ÏÂÁË¹â±ê¼ü
-
         AddMyCurrentPic();         --Ôö¼ÓÖ÷½ÇÌùÍ¼±àºÅ£¬²úÉú×ßÂ·Ğ§¹û
         x=JY.Base["ÈËX"]+CC.DirectX[direct+1];
         y=JY.Base["ÈËY"]+CC.DirectY[direct+1];
@@ -327,10 +367,9 @@ function Game_MMap()      --Ö÷µØÍ¼
     else
         x=JY.Base["ÈËX"];
         y=JY.Base["ÈËY"];
-
     end
 
-	JY.SubScene=CanEnterScene(x,y)   --ÅĞ¶ÏÊÇ·ñ½øÈë×Ó³¡¾°
+	JY.SubScene=CanEnterScene(x,y);   --ÅĞ¶ÏÊÇ·ñ½øÈë×Ó³¡¾°
 
     if lib.GetMMap(x,y,3)==0 and lib.GetMMap(x,y,4)==0 then     --Ã»ÓĞ½¨Öş£¬¿ÉÒÔµ½´ï
         JY.Base["ÈËX"]=x;
@@ -345,11 +384,35 @@ function Game_MMap()      --Ö÷µØÍ¼
 	    JY.Base["³Ë´¬"]=0;
 	end
 
-    lib.DrawMMap(JY.Base["ÈËX"],JY.Base["ÈËY"],GetMyPic());             --ÏÔÊ¾Ö÷µØÍ¼
-    if CC.ShowXY==1 then
-	    DrawString(10,CC.Height-20,string.format("%d %d",JY.Base["ÈËX"],JY.Base["ÈËY"]) ,C_GOLD,16);
+	local pic=GetMyPic();
+
+    if CONFIG.FastShowScreen==1 then  --ÉèÖÃ¿ìËÙÏÔÊ¾£¬²¢ÇÒÖ÷½ÇÎ»ÖÃ²»±ä£¬ÔòÏÔÊ¾²Ã¼ô´°¿Ú
+        if JY.oldMMapX==JY.Base["ÈËX"] and JY.oldMMapY==JY.Base["ÈËY"] then
+			if JY.oldMMapPic>=0 and JY.oldMMapPic ~= pic then        --Ö÷½ÇÌùÍ¼ÓĞ±ä»¯£¬ÔòË¢ĞÂÏÔÊ¾¡£
+				local rr=ClipRect(Cal_PicClip(0,0,JY.oldMMapPic,0,0,0,pic,0));
+				if rr~=nil then
+					lib.SetClip(rr.x1,rr.y1,rr.x2,rr.y2);
+					lib.DrawMMap(JY.Base["ÈËX"],JY.Base["ÈËY"],pic);             --ÏÔÊ¾Ö÷µØÍ¼
+				end
+			end
+		else
+			lib.SetClip(0,0,CC.ScreenW,CC.ScreenH);
+			lib.DrawMMap(JY.Base["ÈËX"],JY.Base["ÈËY"],pic);             --ÏÔÊ¾Ö÷µØÍ¼
+		end
+	else  --È«²¿ÏÔÊ¾
+		lib.DrawMMap(JY.Base["ÈËX"],JY.Base["ÈËY"],pic);             --ÏÔÊ¾Ö÷µØÍ¼
 	end
-    ShowScreen();
+
+	if CC.ShowXY==1 then
+		DrawString(10,CC.ScreenH-20,string.format("%d %d",JY.Base["ÈËX"],JY.Base["ÈËY"]) ,C_GOLD,16);
+	end
+
+	ShowScreen(CONFIG.FastShowScreen);
+	lib.SetClip(0,0,0,0);
+
+	JY.oldMMapX=JY.Base["ÈËX"];
+	JY.oldMMapY=JY.Base["ÈËY"];
+	JY.oldMMapPic=pic;
 
     if JY.SubScene >= 0 then          --½øÈë×Ó³¡¾°
         CleanMemory();
@@ -360,25 +423,99 @@ function Game_MMap()      --Ö÷µØÍ¼
 		JY.Status=GAME_SMAP;
         JY.MMAPMusic=-1;
 
-	    lib.PicLoadFile(CC.SMAPPicFile,0);
-	    lib.PicLoadFile(CC.HeadPicFile,1);
-	    lib.PicLoadFile(CC.ThingPicFile,2);
-
-
-        PlayMIDI(JY.Scene[JY.SubScene]["½øÃÅÒôÀÖ"]);
         JY.MyPic=GetMyPic();
         JY.Base["ÈËX1"]=JY.Scene[JY.SubScene]["Èë¿ÚX"]
         JY.Base["ÈËY1"]=JY.Scene[JY.SubScene]["Èë¿ÚY"]
-        JY.SubSceneX=0;
-        JY.SubSceneY=0;
-        JY.OldDPass=-1;
-        DrawSMap();
-        lib.ShowSlow(50,0)
-        lib.GetKey();
-		DrawStrBoxWaitKey(JY.Scene[JY.SubScene]["Ãû³Æ"],C_WHITE,CC.DefaultFont);
+
+        Init_SMap(1);
     end
+
 end
 
+--showname  =1 ÏÔÊ¾³¡¾°Ãû 0 ²»ÏÔÊ¾
+function Init_SMap(showname)   --³õÊ¼»¯³¡¾°Êı¾İ
+	lib.PicInit();
+	lib.PicLoadFile(CC.SMAPPicFile[1],CC.SMAPPicFile[2],0);
+	lib.PicLoadFile(CC.HeadPicFile[1],CC.HeadPicFile[2],1);
+	if CC.LoadThingPic==1 then
+	    lib.PicLoadFile(CC.ThingPicFile[1],CC.ThingPicFile[2],2);
+	end
+
+	PlayMIDI(JY.Scene[JY.SubScene]["½øÃÅÒôÀÖ"]);
+
+	JY.oldSMapX=-1;
+	JY.oldSMapY=-1;
+
+	JY.SubSceneX=0;
+	JY.SubSceneY=0;
+	JY.OldDPass=-1;
+
+    JY.D_Valid=nil;
+
+	DrawSMap();
+	lib.ShowSlow(50,0)
+	lib.GetKey();
+
+	if showname==1 then
+		DrawStrBox(-1,10,JY.Scene[JY.SubScene]["Ãû³Æ"],C_WHITE,CC.DefaultFont);
+		ShowScreen();
+		WaitKey();
+		Cls();
+		ShowScreen();
+    end
+
+end
+
+--¼ÆËãÌùÍ¼¸Ä±äĞÎ³ÉµÄClip²Ã¼ô
+--(dx1,dy1) ĞÂÌùÍ¼ºÍ»æÍ¼ÖĞĞÄµãµÄ×ø±êÆ«ÒÆ¡£ÔÚ³¡¾°ÖĞ£¬ÊÓ½Ç²»Í¬¶øÖ÷½Ç¶¯Ê±ÓÃµ½
+--pic1 ¾ÉµÄÌùÍ¼±àºÅ
+--id1 ÌùÍ¼ÎÄ¼ş¼ÓÔØ±àºÅ
+--(dx2,dy2) ĞÂÌùÍ¼ºÍ»æÍ¼ÖĞĞÄµãµÄÆ«ÒÆ
+--pic2 ¾ÉµÄÌùÍ¼±àºÅ
+--id2 ÌùÍ¼ÎÄ¼ş¼ÓÔØ±àºÅ
+--·µ»Ø£¬²Ã¼ô¾ØĞÎ {x1,y1,x2,y2}
+function Cal_PicClip(dx1,dy1,pic1,id1,dx2,dy2,pic2,id2)   --¼ÆËãÌùÍ¼¸Ä±äĞÎ³ÉµÄClip²Ã¼ô
+
+	local w1,h1,x1_off,y1_off=lib.PicGetXY(id1,pic1*2);
+	local old_r={};
+	old_r.x1=CC.XScale*(dx1-dy1)+CC.ScreenW/2-x1_off;
+    old_r.y1=CC.YScale*(dx1+dy1)+CC.ScreenH/2-y1_off;
+    old_r.x2=old_r.x1+w1;
+	old_r.y2=old_r.y1+h1;
+
+	local w2,h2,x2_off,y2_off=lib.PicGetXY(id2,pic2*2);
+	local new_r={};
+	new_r.x1=CC.XScale*(dx2-dy2)+CC.ScreenW/2-x2_off;
+    new_r.y1=CC.YScale*(dx2+dy2)+CC.ScreenH/2-y2_off;
+    new_r.x2=new_r.x1+w2;
+	new_r.y2=new_r.y1+h2;
+
+	return MergeRect(old_r,new_r);
+end
+
+function MergeRect(r1,r2)     --ºÏ²¢¾ØĞÎ
+	local res={};
+	res.x1=math.min(r1.x1, r2.x1);
+	res.y1=math.min(r1.y1, r2.y1);
+	res.x2=math.max(r1.x2, r2.x2);
+	res.y2=math.max(r1.y2, r2.y2);
+	return res;
+end
+
+----¶Ô¾ØĞÎ½øĞĞÆÁÄ»¼ô²Ã
+--·µ»Ø¼ô²ÃºóµÄ¾ØĞÎ£¬Èç¹û³¬³öÆÁÄ»£¬·µ»Ø¿Õ
+function ClipRect(r)    --¶Ô¾ØĞÎ½øĞĞÆÁÄ»¼ô²Ã
+	if r.x1>=CC.ScreenW or r.x2<= 0 or r.y1>=CC.ScreenH or r.y2 <=0 then
+	    return nil
+	else
+	    local res={};
+        res.x1=limitX(r.x1,0,CC.ScreenW);
+        res.x2=limitX(r.x2,0,CC.ScreenW);
+        res.y1=limitX(r.y1,0,CC.ScreenH);
+        res.y2=limitX(r.y2,0,CC.ScreenH);
+        return res;
+	end
+end
 
 function GetMyPic()      --¼ÆËãÖ÷½Çµ±Ç°ÌùÍ¼
     local n;
@@ -410,28 +547,42 @@ end
 --x,y µ±Ç°Ö÷µØÍ¼×ø±ê
 --·µ»Ø£º³¡¾°id£¬-1±íÊ¾Ã»ÓĞ³¡¾°¿É½ø
 function CanEnterScene(x,y)         --³¡¾°ÊÇ·ñ¿É½ø
-    for id = 0,JY.SceneNum-1 do
-		local scene=JY.Scene[id];
-		if (x==scene["Íâ¾°Èë¿ÚX1"] and y==scene["Íâ¾°Èë¿ÚY1"]) or
-		   (x==scene["Íâ¾°Èë¿ÚX2"] and y==scene["Íâ¾°Èë¿ÚY2"]) then
-			local e=scene["½øÈëÌõ¼ş"];
-			if e==0 then        --¿É½ø
-				return id;
-			elseif e==1 then    --²»¿É½ø
-				return -1
-			elseif e==2 then    --ÓĞÇá¹¦¸ßÕß½ø
-				for i=1,CC.TeamNum do
-					local pid=JY.Base["¶ÓÎé" .. i];
-					if pid>=0 then
-						if JY.Person[pid]["Çá¹¦"]>=70 then
-							return id;
-						end
+    if JY.EnterSceneXY==nil then    --Èç¹ûÎª¿Õ£¬ÔòÖØĞÂ²úÉúÊı¾İ¡£
+	    Cal_EnterSceneXY();
+	end
+
+    local id=JY.EnterSceneXY[y*CC.MWidth+x];
+    if id~=nil then
+        local e=JY.Scene[id]["½øÈëÌõ¼ş"];
+		if e==0 then        --¿É½ø
+			return id;
+		elseif e==1 then    --²»¿É½ø
+			return -1
+		elseif e==2 then    --ÓĞÇá¹¦¸ßÕß½ø
+			for i=1,CC.TeamNum do
+				local pid=JY.Base["¶ÓÎé" .. i];
+				if pid>=0 then
+					if JY.Person[pid]["Çá¹¦"]>=70 then
+						return id;
 					end
 				end
 			end
 		end
 	end
     return -1;
+end
+
+function Cal_EnterSceneXY()   --¼ÆËãÄÄĞ©×ø±ê¿ÉÒÔ½øÈë³¡¾°
+    JY.EnterSceneXY={};
+    for id = 0,JY.SceneNum-1 do
+		local scene=JY.Scene[id];
+        if scene["Íâ¾°Èë¿ÚX1"]>0 and scene["Íâ¾°Èë¿ÚY1"] then
+            JY.EnterSceneXY[scene["Íâ¾°Èë¿ÚY1"]*CC.MWidth+scene["Íâ¾°Èë¿ÚX1"]]=id;
+		end
+        if scene["Íâ¾°Èë¿ÚX2"]>0 and scene["Íâ¾°Èë¿ÚY2"] then
+            JY.EnterSceneXY[scene["Íâ¾°Èë¿ÚY2"]*CC.MWidth+scene["Íâ¾°Èë¿ÚX2"]]=id;
+		end
+    end
 end
 
 --Ö÷²Ëµ¥
@@ -452,33 +603,26 @@ end
 
 --ÏµÍ³×Ó²Ëµ¥
 function Menu_System()         --ÏµÍ³×Ó²Ëµ¥
-	local menu={
-	             {"¶ÁÈ¡½ø¶È",Menu_ReadRecord,1},
+	local menu={ {"¶ÁÈ¡½ø¶È",Menu_ReadRecord,1},
                  {"±£´æ½ø¶È",Menu_SaveRecord,1},
                  {"Àë¿ªÓÎÏ·",Menu_Exit,1},   };
 
-
     local r=ShowMenu(menu,3,0,CC.MainSubMenuX,CC.MainSubMenuY,0,0,1,1,CC.DefaultFont,C_ORANGE, C_WHITE);
     if r == 0 then
-        Cls(CC.MainSubMenuX,CC.MainSubMenuY,CC.ScreenW,CC.ScreenH);
         return 0;
     elseif r<0 then   --ÒªÍË³öÈ«²¿²Ëµ¥£¬
-        Cls();
         return 1;
  	end
 end
 
-
-
 --Àë¿ª²Ëµ¥
 function Menu_Exit()      --Àë¿ª²Ëµ¥
     Cls();
-    if DrawStrBoxYesNo(-1,-1,"ÊÇ·ñÕæµÄÒªÀë¿ªÓÎÏ·(Y/N)?",C_WHITE,CC.DefaultFont) == true then
+    if DrawStrBoxYesNo(-1,-1,"ÊÇ·ñÕæµÄÒªÀë¿ªÓÎÏ·£¿",C_WHITE,CC.DefaultFont) == true then
         JY.Status =GAME_END;
     end
     return 1;
 end
-
 
 --±£´æ½ø¶È
 function Menu_SaveRecord()         --±£´æ½ø¶È²Ëµ¥
@@ -486,7 +630,6 @@ function Menu_SaveRecord()         --±£´æ½ø¶È²Ëµ¥
                  {"½ø¶È¶ş",nil,1},
                  {"½ø¶ÈÈı",nil,1},  };
     local r=ShowMenu(menu,3,0,CC.MainSubMenuX2,CC.MainSubMenuY,0,0,1,1,CC.DefaultFont,C_ORANGE, C_WHITE);
-
     if r>0 then
         DrawStrBox(CC.MainSubMenuX2,CC.MainSubMenuY,"ÇëÉÔºò......",C_WHITE,CC.DefaultFont);
         ShowScreen();
@@ -524,7 +667,7 @@ function Menu_Status()           --×´Ì¬×Ó²Ëµ¥
         ShowPersonStatus(r)
 		return 1;
 	else
-        Cls(CC.MainSubMenuX,CC.MainSubMenuY,CC.ScreenW,CC.ScreenH);
+		Cls();
         return 0;
 	end
 end
@@ -545,8 +688,7 @@ function Menu_PersonExit()        --Àë¶ÓExit
              end
         end
     end
-    Cls(CC.MainSubMenuX,CC.MainSubMenuY,CC.ScreenW,CC.ScreenH);
-    ShowScreen();
+    Cls();
     return 0;
 end
 
@@ -582,13 +724,11 @@ end
 function ShowPersonStatus(teamid)---ÏÔÊ¾¶ÓÓÑ×´Ì¬
 	local page=1;
 	local pagenum=2;
-
 	local teamnum=GetTeamNum();
 
 	while true do
 	    Cls();
         local id=JY.Base["¶ÓÎé" .. teamid];
-
         ShowPersonStatus_sub(id,page);
 
         ShowScreen();
@@ -598,26 +738,15 @@ function ShowPersonStatus(teamid)---ÏÔÊ¾¶ÓÓÑ×´Ì¬
             break;
         elseif keypress==VK_UP then
 		    teamid=teamid-1;
-            if  teamid == 0 then
-                teamid=1;
-			end
         elseif keypress==VK_DOWN then
 		    teamid=teamid+1;
-            if  teamid >teamnum then
-                teamid=teamnum;
-			end
-
         elseif keypress==VK_LEFT then
 		    page=page-1;
-            if  page< 1 then
-                page=1;
-			end
         elseif keypress==VK_RIGHT then
 		    page=page+1;
-            if  page> pagenum then
-                page=pagenum;
-			end
         end
+		teamid=limitX(teamid,1,teamnum);
+		page=limitX(page,1,pagenum);
 	end
 end
 
@@ -903,7 +1032,6 @@ function Menu_DecPoison()         --½â¶¾
 	local nexty=CC.MainSubMenuY+CC.SingleLineHeight;
     DrawStrBox(CC.MainSubMenuX,nexty,"½â¶¾ÄÜÁ¦",C_ORANGE,CC.DefaultFont);
 
-
 	local menu1={};
 	for i=1,CC.TeamNum do
         menu1[i]={"",nil,0};
@@ -947,7 +1075,6 @@ function Menu_DecPoison()         --½â¶¾
 		end
 	end
     Cls();
-    ShowScreen();
     return 0;
 end
 
@@ -973,8 +1100,7 @@ function Menu_Thing()       --ÎïÆ·²Ëµ¥
                  {"Éñ±ø±¦¼×",nil,1},
                  {"Îä¹¦ÃØóÅ",nil,1},
                  {"Áéµ¤ÃîÒ©",nil,1},
-                 {"ÉËÈË°µÆ÷",nil,1}
-			   };
+                 {"ÉËÈË°µÆ÷",nil,1}, };
 
     local r=ShowMenu(menu,CC.TeamNum,0,CC.MainSubMenuX,CC.MainSubMenuY,0,0,1,1,CC.DefaultFont,C_ORANGE, C_WHITE);
 
@@ -1064,15 +1190,12 @@ function SelectThing(thing,thingnum)    --ÏÔÊ¾ÎïÆ·²Ëµ¥
                         str=string.format("%s X %d",str,thingnum[id]);
 						local str2=JY.Thing[thing[id]]["ÎïÆ·ËµÃ÷"];
 
-
-
      			        DrawString(dx+CC.ThingGapOut,y1_1+CC.MenuBorderPixel,str,C_GOLD,CC.ThingFontSize);
      			        DrawString(dx+CC.ThingGapOut,y2_1+CC.MenuBorderPixel,str2,C_ORANGE,CC.ThingFontSize);
 
                     else
                         cur_thing=-1;
                     end
-
                 else
  				    boxcolor=C_BLACK;
                 end
@@ -1080,7 +1203,11 @@ function SelectThing(thing,thingnum)    --ÏÔÊ¾ÎïÆ·²Ëµ¥
 				local boxy=y3_1+CC.ThingGapOut+y*(CC.ThingPicHeight+CC.ThingGapIn);
                 lib.DrawRect(boxx,boxy,boxx+CC.ThingPicWidth+1,boxy+CC.ThingPicHeight+1,boxcolor);
                 if thing[id]>=0 then
-					lib.PicLoadCache(2,thing[id]*2,boxx+1,boxy+1,1);
+				    if CC.LoadThingPic==1 then
+					    lib.PicLoadCache(2,thing[id]*2,boxx+1,boxy+1,1);
+					else
+                        lib.PicLoadCache(0,(thing[id]+CC.StartThingPic)*2,boxx+1,boxy+1,1);
+					end
                 end
             end
         end
@@ -1126,7 +1253,6 @@ function SelectThing(thing,thingnum)    --ÏÔÊ¾ÎïÆ·²Ëµ¥
 	end
 
     Cls();
-
     return cur_thing;
 end
 
@@ -1134,17 +1260,23 @@ end
 --³¡¾°´¦ÀíÖ÷º¯Êı
 function Game_SMap()         --³¡¾°´¦ÀíÖ÷º¯Êı
 
-    DrawSMap();
+	DrawSMap(CONFIG.FastShowScreen);
 	if CC.ShowXY==1 then
-        DrawString(10,CC.Height-20,string.format("%s %d %d",JY.Scene[JY.SubScene]["Ãû³Æ"],JY.Base["ÈËX1"],JY.Base["ÈËY1"]) ,C_GOLD,16);
+		DrawString(10,CC.ScreenH-20,string.format("%s %d %d",JY.Scene[JY.SubScene]["Ãû³Æ"],JY.Base["ÈËX1"],JY.Base["ÈËY1"]) ,C_GOLD,16);
 	end
-    ShowScreen();
+
+	ShowScreen(CONFIG.FastShowScreen);
+
+	lib.SetClip(0,0,0,0);
 
     local d_pass=GetS(JY.SubScene,JY.Base["ÈËX1"],JY.Base["ÈËY1"],3);   --µ±Ç°Â·¹ıÊÂ¼ş
     if d_pass>=0 then
         if d_pass ~=JY.OldDPass then     --±ÜÃâÖØ¸´´¥·¢
             EventExecute(d_pass,3);       --Â·¹ı´¥·¢ÊÂ¼ş
             JY.OldDPass=d_pass;
+		    JY.oldSMapX=-1;
+	        JY.oldSMapY=-1;
+			JY.D_Valid=nil;
         end
     else
         JY.OldDPass=-1;
@@ -1160,25 +1292,21 @@ function Game_SMap()         --³¡¾°´¦ÀíÖ÷º¯Êı
     if isout==1 then    --³öÈ¥£¬·µ»ØÖ÷µØÍ¼
         JY.Status=GAME_MMAP;
 
-        lib.PicInit();
+		lib.PicInit();
 		CleanMemory();
         lib.ShowSlow(50,1)
 
-        lib.LoadMMap(CC.MMapFile[1],CC.MMapFile[2],CC.MMapFile[3],
-		            CC.MMapFile[4],CC.MMapFile[5],CC.MWidth,CC.MHeight);
-
- 	    lib.PicLoadFile(CC.MMAPPicFile,0);
- 	    lib.PicLoadFile(CC.HeadPicFile,1);
-	    lib.PicLoadFile(CC.ThingPicFile,2);
-
-
-        if JY.MMAPMusic>=0 then
-            PlayMIDI(JY.MMAPMusic);
-        else
-            PlayMIDI(JY.Scene[JY.SubScene]["³öÃÅÒôÀÖ"]);
+        if JY.MMAPMusic<0 then
+            JY.MMAPMusic=JY.Scene[JY.SubScene]["³öÃÅÒôÀÖ"];
         end
 
+		Init_MMap();
+
+
+
         JY.SubScene=-1;
+		JY.oldSMapX=-1;
+		JY.oldSMapY=-1;
 
         lib.DrawMMap(JY.Base["ÈËX"],JY.Base["ÈËY"],GetMyPic());
         lib.ShowSlow(50,0)
@@ -1191,7 +1319,7 @@ function Game_SMap()         --³¡¾°´¦ÀíÖ÷º¯Êı
         if JY.Base["ÈËX1"]==JY.Scene[JY.SubScene]["Ìø×ª¿ÚX1"] and JY.Base["ÈËY1"]==JY.Scene[JY.SubScene]["Ìø×ª¿ÚY1"] then
             JY.SubScene=JY.Scene[JY.SubScene]["Ìø×ª³¡¾°"];
             lib.ShowSlow(50,1);
-            PlayMIDI(JY.Scene[JY.SubScene]["½øÃÅÒôÀÖ"]);
+
             if JY.Scene[JY.SubScene]["Íâ¾°Èë¿ÚX1"]==0 and JY.Scene[JY.SubScene]["Íâ¾°Èë¿ÚY1"]==0 then
                 JY.Base["ÈËX1"]=JY.Scene[JY.SubScene]["Èë¿ÚX"];            --ĞÂ³¡¾°µÄÍâ¾°Èë¿ÚÎª0£¬±íÊ¾ÕâÊÇÒ»¸öÄÚ²¿³¡¾°
                 JY.Base["ÈËY1"]=JY.Scene[JY.SubScene]["Èë¿ÚY"];
@@ -1199,13 +1327,9 @@ function Game_SMap()         --³¡¾°´¦ÀíÖ÷º¯Êı
                 JY.Base["ÈËX1"]=JY.Scene[JY.SubScene]["Ìø×ª¿ÚX2"];         --Íâ²¿³¡¾°£¬¼´´ÓÆäËûÄÚ²¿³¡¾°Ìø»Ø¡£
                 JY.Base["ÈËY1"]=JY.Scene[JY.SubScene]["Ìø×ª¿ÚY2"];
             end
-            JY.SubSceneX=0;
-            JY.SubSceneY=0;
-            JY.OldDPass=-1;
-            DrawSMap();
-            lib.ShowSlow(50,0);
-            lib.GetKey();
-		    DrawStrBoxWaitKey(JY.Scene[JY.SubScene]["Ãû³Æ"],C_WHITE,CC.DefaultFont);
+
+			Init_SMap(1);
+
             return;
         end
     end
@@ -1214,9 +1338,11 @@ function Game_SMap()         --³¡¾°´¦ÀíÖ÷º¯Êı
     local keypress = lib.GetKey();
     local direct=-1;
     if keypress ~= -1 then
-		JY.Mytick=0;
+		JY.MyTick=0;
 		if keypress==VK_ESCAPE then
 			MMenu();
+			JY.oldSMapX=-1;
+	        JY.oldSMapY=-1;
 		elseif keypress==VK_UP then
 			direct=0;
 		elseif keypress==VK_DOWN then
@@ -1230,6 +1356,9 @@ function Game_SMap()         --³¡¾°´¦ÀíÖ÷º¯Êı
                 local d_num=GetS(JY.SubScene,JY.Base["ÈËX1"]+CC.DirectX[JY.Base["ÈË·½Ïò"]+1],JY.Base["ÈËY1"]+CC.DirectY[JY.Base["ÈË·½Ïò"]+1],3);
                 if d_num>=0 then
                     EventExecute(d_num,1);       --¿Õ¸ñ´¥·¢ÊÂ¼ş
+					JY.oldSMapX=-1;
+					JY.oldSMapY=-1;
+					JY.D_Valid=nil;
                 end
             end
 		end
@@ -1250,7 +1379,9 @@ function Game_SMap()         --³¡¾°´¦ÀíÖ÷º¯Êı
     end
 
     JY.MyPic=GetMyPic();
+
     DtoSMap();
+
     if SceneCanPass(x,y)==true then          --ĞÂµÄ×ø±ê¿ÉÒÔ×ß¹ıÈ¥
         JY.Base["ÈËX1"]=x;
         JY.Base["ÈËY1"]=y;
@@ -1283,39 +1414,149 @@ function SceneCanPass(x,y)  --³¡¾°×ø±ê(x,y)ÊÇ·ñ¿ÉÒÔÍ¨¹ı
     return ispass;
 end
 
-function DtoSMap()          ---D*ÖĞµÄÊÂ¼şÊı¾İ¸´ÖÆµ½S*ÖĞ£¬Í¬Ê±´¦Àí¶¯»­Ğ§¹û¡£
-    for i=0,CC.DNum-1 do
-        local x=GetD(JY.SubScene,i,9);
-        local y=GetD(JY.SubScene,i,10);
-        if x>0 and y>0 then
-            SetS(JY.SubScene,x,y,3,i);
 
-			local p1=GetD(JY.SubScene,i,5);
-			if p1>=0 then
-				local p2=GetD(JY.SubScene,i,6);
-				local p3=GetD(JY.SubScene,i,7);
-				local delay=GetD(JY.SubScene,i,8);
-				if p3<=p1 then     --¶¯»­ÒÑÍ£Ö¹
-					if JY.Mytick %100 > delay then
-						p3=p3+1;
+function Cal_D_Valid()     --¼ÆËã200¸öDÖĞÓĞĞ§µÄD
+    if JY.D_Valid~=nil then
+	    return ;
+	end
+
+    local sceneid=JY.SubScene;
+	JY.D_Valid={};
+	JY.D_Valid_Num=0;
+    for i=0,CC.DNum-1 do
+        local x=GetD(sceneid,i,9);
+        local y=GetD(sceneid,i,10);
+        local v=GetS(sceneid,x,y,3);
+		if v>=0 then
+            JY.D_Valid[JY.D_Valid_Num]=i;
+			JY.D_Valid_Num=JY.D_Valid_Num+1;
+		end
+	end
+end
+
+function DtoSMap()          ---D*ÖĞµÄÊÂ¼ş´¦Àí¶¯»­Ğ§¹û¡£
+    local sceneid=JY.SubScene;
+    JY.NumD_PicChange=0;
+    JY.D_PicChange={};
+
+	if JY.D_Valid==nil then
+	    Cal_D_Valid();
+	end
+
+	for k=0,JY.D_Valid_Num-1 do
+	    local i=JY.D_Valid[k];
+
+		local p1=GetD(sceneid,i,5);
+		if p1>0 then
+			local p2=GetD(sceneid,i,6);
+			local p3=GetD(sceneid,i,7);
+			if p1 ~= p2 then
+				local old_p3=p3;
+				local delay=GetD(sceneid,i,8);
+				if not (p3>=CC.SceneFlagPic[1]*2 and p3<=CC.SceneFlagPic[2]*2 and CC.ShowFlag==0) then --ÊÇ·ñÏÔÊ¾ÆìÖÄ
+					if p3<=p1 then     --¶¯»­ÒÑÍ£Ö¹
+						if JY.MyTick2 %100 > delay then
+							p3=p3+2;
+						end
+					else
+						if JY.MyTick2 % 4 ==0 then      --4¸ö½ÚÅÄ¶¯»­Ôö¼ÓÒ»´Î
+							p3=p3+2;
+						end
 					end
-				else
-					if JY.Mytick % 4 ==0 then      --4¸ö½ÚÅÄ¶¯»­Ôö¼ÓÒ»´Î
-						p3=p3+1;
+					if p3>p2 then
+						 p3=p1;
 					end
 				end
-				if p3>p2 then
-					 p3=p1;
+				if old_p3 ~=p3 then    --¶¯»­¸Ä±äÁË£¬Ôö¼ÓÒ»¸ö
+                    local x=GetD(sceneid,i,9);
+                    local y=GetD(sceneid,i,10);
+					local dy=GetS(sceneid,x,y,4);       --º£°Î
+					JY.D_PicChange[JY.NumD_PicChange]={x=x, y=y, dy=dy, p1=old_p3/2, p2=p3/2}
+					JY.NumD_PicChange=JY.NumD_PicChange+1;
+					SetD(sceneid,i,7,p3);
 				end
-				SetD(JY.SubScene,i,7,p3);
 			end
-        end
+		end
     end
 end
 
+--fastdraw = 0 or nil È«²¿ÖØ»æ¡£ÓÃÓÚÊÂ¼şÖĞ
+--           1 ¿¼ÂÇÔà¾ØĞÎ ÓÃÓÚÏÔÊ¾³¡¾°Ñ­»·
+function DrawSMap(fastdraw)         --»æ³¡¾°µØÍ¼
+    if fastdraw==nil then
+	    fastdraw=0;
+	end
+	local x0=JY.SubSceneX+JY.Base["ÈËX1"]-1;    --»æÍ¼ÖĞĞÄµã
+	local y0=JY.SubSceneY+JY.Base["ÈËY1"]-1;
 
-function DrawSMap()         --»æ³¡¾°µØÍ¼
-    lib.DrawSMap(JY.SubScene,JY.Base["ÈËX1"],JY.Base["ÈËY1"],JY.SubSceneX,JY.SubSceneY,JY.MyPic);
+	local x=limitX(x0,CC.SceneXMin,CC.SceneXMax)-JY.Base["ÈËX1"];
+	local y=limitX(y0,CC.SceneYMin,CC.SceneYMax)-JY.Base["ÈËY1"];
+
+    if fastdraw==0 then
+		lib.DrawSMap(JY.SubScene,JY.Base["ÈËX1"],JY.Base["ÈËY1"],x,y,JY.MyPic);
+    else
+		if JY.oldSMapX>=0 and JY.oldSMapY>=0 and
+		   JY.oldSMapX+JY.oldSMapXoff==JY.Base["ÈËX1"]+x and         --»æÍ¼ÖĞĞÄµã²»±ä£¬ÈË×ßÂ·Ò²¿ÉÒÔÓÃ²Ã¼ô·½Ê½»æÍ¼
+		   JY.oldSMapY+JY.oldSMapYoff==JY.Base["ÈËY1"]+y then
+
+			local num_clip=0;
+			local clip={};
+
+			for i=0,JY.NumD_PicChange-1 do   --¼ÆËãD*ÖĞÌùÍ¼¸Ä±äµÄ¾ØĞÎ
+			    local dx=JY.D_PicChange[i].x-JY.Base["ÈËX1"]-x;
+				local dy=JY.D_PicChange[i].y-JY.Base["ÈËY1"]-y;
+				clip[num_clip]=Cal_PicClip(dx,dy,JY.D_PicChange[i].p1,0,
+										   dx,dy,JY.D_PicChange[i].p2,0 );
+				clip[num_clip].y1=clip[num_clip].y1-JY.D_PicChange[i].dy
+				clip[num_clip].y2=clip[num_clip].y2-JY.D_PicChange[i].dy
+				num_clip=num_clip+1;
+			end
+
+			if JY.oldSMapPic>=0 then  --¼ÆËãÖ÷½Ç¾ØĞÎ
+			    if not ( JY.oldSMapX==JY.Base["ÈËX1"] and    --Ö÷½ÇÓĞ±ä»¯
+				         JY.oldSMapY==JY.Base["ÈËY1"] and
+						 JY.oldSMapPic==JY.MyPic ) then
+					local dy1=GetS(JY.SubScene,JY.Base["ÈËX1"],JY.Base["ÈËY1"],4);   --º£°Î
+					local dy2=GetS(JY.SubScene,JY.oldSMapX,JY.oldSMapY,4);
+					local dy=math.max(dy1,dy2);
+					clip[num_clip]=Cal_PicClip(-JY.oldSMapXoff,-JY.oldSMapYoff,JY.oldSMapPic,0,
+												-x,-y,JY.MyPic,0)
+					clip[num_clip].y1=clip[num_clip].y1- dy;
+					clip[num_clip].y2=clip[num_clip].y2- dy;
+					num_clip=num_clip+1;
+				end
+			end
+
+			local area=0;          --¼ÆËãËùÓĞÔà¾ØĞÎÃæ»ı
+			for i=0,num_clip-1 do
+				clip[i]=ClipRect(clip[i]);    --¾ØĞÎÆÁÄ»¼ô²Ã
+				if clip[i]~=nil then
+					area=area+(clip[i].x2-clip[i].x1)*(clip[i].y2-clip[i].y1)
+				end
+			end
+
+			if area <CC.ScreenW*CC.ScreenH/2 and num_clip<15 then        --Ãæ»ı×ã¹»Ğ¡£¬¾ØĞÎÊıÄ¿ÉÙ£¬Ôò¸üĞÂÔà¾ØĞÎ¡£
+				for i=0,num_clip-1 do
+					if clip[i]~=nil then
+						lib.SetClip(clip[i].x1,clip[i].y1,clip[i].x2,clip[i].y2);
+						lib.DrawSMap(JY.SubScene,JY.Base["ÈËX1"],JY.Base["ÈËY1"],x,y,JY.MyPic);
+					end
+				end
+			else    --Ãæ»ıÌ«´ó£¬Ö±½ÓÖØ»æ
+				lib.SetClip(0,0,CC.ScreenW,CC.ScreenH);   --ÓÉÓÚredraw=0£¬±ØĞë¸ø³ö²Ã¼ô¾ØĞÎÒÔºó²ÅÄÜShowSurface
+				lib.DrawSMap(JY.SubScene,JY.Base["ÈËX1"],JY.Base["ÈËY1"],x,y,JY.MyPic);
+			end
+		else
+			lib.SetClip(0,0,CC.ScreenW,CC.ScreenH);
+			lib.DrawSMap(JY.SubScene,JY.Base["ÈËX1"],JY.Base["ÈËY1"],x,y,JY.MyPic);
+		end
+    end
+
+	JY.oldSMapX=JY.Base["ÈËX1"];
+	JY.oldSMapY=JY.Base["ÈËY1"];
+	JY.oldSMapPic=JY.MyPic;
+    JY.oldSMapXoff=x;
+    JY.oldSMapYoff=y;
 end
 
 
@@ -1325,6 +1566,7 @@ end
 --ÕâÀïÊÇÏÈ°ÑÊı¾İ¶ÁÈëByteÊı×éÖĞ¡£È»ºó¶¨Òå·ÃÎÊÏàÓ¦±íµÄ·½·¨£¬ÔÚ·ÃÎÊ±íÊ±Ö±½Ó´ÓÊı×é·ÃÎÊ¡£
 --ÓëÒÔÇ°µÄÊµÏÖÏà±È£¬´ÓÎÄ¼şÖĞ¶ÁÈ¡ºÍ±£´æµ½ÎÄ¼şµÄÊ±¼äÏÔÖø¼Ó¿ì¡£¶øÇÒÄÚ´æÕ¼ÓÃÉÙÁË
 function LoadRecord(id)       -- ¶ÁÈ¡ÓÎÏ·½ø¶È
+    local t1=lib.GetTime();
 
     --¶ÁÈ¡R*.idxÎÄ¼ş
     local data=Byte.create(6*4);
@@ -1343,108 +1585,98 @@ function LoadRecord(id)       -- ¶ÁÈ¡ÓÎÏ·½ø¶È
     --ÉèÖÃ·ÃÎÊ»ù±¾Êı¾İµÄ·½·¨£¬ÕâÑù¾Í¿ÉÒÔÓÃ·ÃÎÊ±íµÄ·½Ê½·ÃÎÊÁË¡£¶ø²»ÓÃ°Ñ¶ş½øÖÆÊı¾İ×ª»¯Îª±í¡£½ÚÔ¼¼ÓÔØÊ±¼äºÍ¿Õ¼ä
 	local meta_t={
 	    __index=function(t,k)
-	        return GetDataFromStruct(JY.Data_Base,CC.Base_S,k);
+	        return GetDataFromStruct(JY.Data_Base,0,CC.Base_S,k);
 		end,
 
 		__newindex=function(t,k,v)
-	        SetDataFromStruct(JY.Data_Base,CC.Base_S,k,v);
+	        SetDataFromStruct(JY.Data_Base,0,CC.Base_S,k,v);
 	 	end
 	}
     setmetatable(JY.Base,meta_t);
 
-    JY.PersonNum=math.floor((idx[2]-idx[1])/CC.PersonSize);   --ÈËÎï
-	JY.Data_Person={};
-	for i=0,JY.PersonNum-1 do
-        JY.Data_Person[i]=Byte.create(CC.PersonSize);
-        Byte.loadfile(JY.Data_Person[i],CC.R_GRPFilename[id],idx[1]+i*CC.PersonSize,CC.PersonSize);
-		JY.Person[i]={};
 
+    JY.PersonNum=math.floor((idx[2]-idx[1])/CC.PersonSize);   --ÈËÎï
+
+	JY.Data_Person=Byte.create(CC.PersonSize*JY.PersonNum);
+	Byte.loadfile(JY.Data_Person,CC.R_GRPFilename[id],idx[1],CC.PersonSize*JY.PersonNum);
+
+	for i=0,JY.PersonNum-1 do
+		JY.Person[i]={};
 		local meta_t={
 			__index=function(t,k)
-				return GetDataFromStruct(JY.Data_Person[i],CC.Person_S,k);
+				return GetDataFromStruct(JY.Data_Person,i*CC.PersonSize,CC.Person_S,k);
 			end,
 
 			__newindex=function(t,k,v)
-				SetDataFromStruct(JY.Data_Person[i],CC.Person_S,k,v);
+				SetDataFromStruct(JY.Data_Person,i*CC.PersonSize,CC.Person_S,k,v);
 			end
 		}
         setmetatable(JY.Person[i],meta_t);
-
 	end
 
     JY.ThingNum=math.floor((idx[3]-idx[2])/CC.ThingSize);     --ÎïÆ·
-
-	JY.Data_Thing={};
+	JY.Data_Thing=Byte.create(CC.ThingSize*JY.ThingNum);
+	Byte.loadfile(JY.Data_Thing,CC.R_GRPFilename[id],idx[2],CC.ThingSize*JY.ThingNum);
 	for i=0,JY.ThingNum-1 do
-	    JY.Data_Thing[i]=Byte.create(CC.ThingSize);
-        Byte.loadfile(JY.Data_Thing[i],CC.R_GRPFilename[id],idx[2]+i*CC.ThingSize,CC.ThingSize);
 		JY.Thing[i]={};
-
 		local meta_t={
 			__index=function(t,k)
-				return GetDataFromStruct(JY.Data_Thing[i],CC.Thing_S,k);
+				return GetDataFromStruct(JY.Data_Thing,i*CC.ThingSize,CC.Thing_S,k);
 			end,
 
 			__newindex=function(t,k,v)
-				SetDataFromStruct(JY.Data_Thing[i],CC.Thing_S,k,v);
+				SetDataFromStruct(JY.Data_Thing,i*CC.ThingSize,CC.Thing_S,k,v);
 			end
 		}
         setmetatable(JY.Thing[i],meta_t);
-
 	end
 
     JY.SceneNum=math.floor((idx[4]-idx[3])/CC.SceneSize);     --³¡¾°
-    JY.Data_Scene={};
+	JY.Data_Scene=Byte.create(CC.SceneSize*JY.SceneNum);
+	Byte.loadfile(JY.Data_Scene,CC.R_GRPFilename[id],idx[3],CC.SceneSize*JY.SceneNum);
 	for i=0,JY.SceneNum-1 do
-	    JY.Data_Scene[i]=Byte.create(CC.SceneSize);
-        Byte.loadfile(JY.Data_Scene[i],CC.R_GRPFilename[id],idx[3]+i*CC.SceneSize,CC.SceneSize);
 		JY.Scene[i]={};
-
 		local meta_t={
 			__index=function(t,k)
-				return GetDataFromStruct(JY.Data_Scene[i],CC.Scene_S,k);
+				return GetDataFromStruct(JY.Data_Scene,i*CC.SceneSize,CC.Scene_S,k);
 			end,
 
 			__newindex=function(t,k,v)
-				SetDataFromStruct(JY.Data_Scene[i],CC.Scene_S,k,v);
+				SetDataFromStruct(JY.Data_Scene,i*CC.SceneSize,CC.Scene_S,k,v);
 			end
 		}
         setmetatable(JY.Scene[i],meta_t);
 	end
 
     JY.WugongNum=math.floor((idx[5]-idx[4])/CC.WugongSize);     --Îä¹¦
-    JY.Data_Wugong={};
+	JY.Data_Wugong=Byte.create(CC.WugongSize*JY.WugongNum);
+	Byte.loadfile(JY.Data_Wugong,CC.R_GRPFilename[id],idx[4],CC.WugongSize*JY.WugongNum);
 	for i=0,JY.WugongNum-1 do
-        JY.Data_Wugong[i]=Byte.create(CC.WugongSize);
-        Byte.loadfile(JY.Data_Wugong[i],CC.R_GRPFilename[id],idx[4]+i*CC.WugongSize,CC.WugongSize);
 		JY.Wugong[i]={};
-
 		local meta_t={
 			__index=function(t,k)
-				return GetDataFromStruct(JY.Data_Wugong[i],CC.Wugong_S,k);
+				return GetDataFromStruct(JY.Data_Wugong,i*CC.WugongSize,CC.Wugong_S,k);
 			end,
 
 			__newindex=function(t,k,v)
-				SetDataFromStruct(JY.Data_Wugong[i],CC.Wugong_S,k,v);
+				SetDataFromStruct(JY.Data_Wugong,i*CC.WugongSize,CC.Wugong_S,k,v);
 			end
 		}
         setmetatable(JY.Wugong[i],meta_t);
-
 	end
 
     JY.ShopNum=math.floor((idx[6]-idx[5])/CC.ShopSize);     --Ğ¡±¦ÉÌµê
-    JY.Data_Shop={};
+	JY.Data_Shop=Byte.create(CC.ShopSize*JY.ShopNum);
+	Byte.loadfile(JY.Data_Shop,CC.R_GRPFilename[id],idx[5],CC.ShopSize*JY.ShopNum);
 	for i=0,JY.ShopNum-1 do
-        JY.Data_Shop[i]=Byte.create(CC.ShopSize);
-        Byte.loadfile(JY.Data_Shop[i],CC.R_GRPFilename[id],idx[5]+i*CC.ShopSize,CC.ShopSize);
 		JY.Shop[i]={};
 		local meta_t={
 			__index=function(t,k)
-				return GetDataFromStruct(JY.Data_Shop[i],CC.Shop_S,k);
+				return GetDataFromStruct(JY.Data_Shop,i*CC.ShopSize,CC.Shop_S,k);
 			end,
 
 			__newindex=function(t,k,v)
-				SetDataFromStruct(JY.Data_Shop[i],CC.Shop_S,k,v);
+				SetDataFromStruct(JY.Data_Shop,i*CC.ShopSize,CC.Shop_S,k,v);
 			end
 		}
         setmetatable(JY.Shop[i],meta_t);
@@ -1452,13 +1684,17 @@ function LoadRecord(id)       -- ¶ÁÈ¡ÓÎÏ·½ø¶È
     end
 
     lib.LoadSMap(CC.S_Filename[id],CC.TempS_Filename,JY.SceneNum,CC.SWidth,CC.SHeight,CC.D_Filename[id],CC.DNum,11);
-    collectgarbage();
+	collectgarbage();
+
+	lib.Debug(string.format("Loadrecord time=%d",lib.GetTime()-t1));
 end
 
 -- Ğ´ÓÎÏ·½ø¶È
 -- id=0 ĞÂ½ø¶È£¬=1/2/3 ½ø¶È
 function SaveRecord(id)         -- Ğ´ÓÎÏ·½ø¶È
     --¶ÁÈ¡R*.idxÎÄ¼ş
+    local t1=lib.GetTime();
+
     local data=Byte.create(6*4);
     Byte.loadfile(data,CC.R_IDXFilename[id],0,6*4);
 
@@ -1469,32 +1705,22 @@ function SaveRecord(id)         -- Ğ´ÓÎÏ·½ø¶È
 	end
 
     --Ğ´R*.grpÎÄ¼ş
-    Byte.savefile(JY.Data_Base,CC.R_GRPFilename[id],idx[0],idx[1]-idx[0]);  --»ù±¾Êı¾İ
+    Byte.savefile(JY.Data_Base,CC.R_GRPFilename[id],idx[0],idx[1]-idx[0]);
 
-	for i=0,JY.PersonNum-1 do                   --ÈËÎï
- 		Byte.savefile(JY.Data_Person[i],CC.R_GRPFilename[id],idx[1]+i*CC.PersonSize,CC.PersonSize);
-	end
+	Byte.savefile(JY.Data_Person,CC.R_GRPFilename[id],idx[1],CC.PersonSize*JY.PersonNum);
 
-	for i=0,JY.ThingNum-1 do              --ÎïÆ·
- 		Byte.savefile(JY.Data_Thing[i],CC.R_GRPFilename[id],idx[2]+i*CC.ThingSize,CC.ThingSize);
-	end
+	Byte.savefile(JY.Data_Thing,CC.R_GRPFilename[id],idx[2],CC.ThingSize*JY.ThingNum);
 
-	for i=0,JY.SceneNum-1 do              --³¡¾°
- 	      Byte.savefile(JY.Data_Scene[i],CC.R_GRPFilename[id],idx[3]+i*CC.SceneSize,CC.SceneSize);
-	end
+	Byte.savefile(JY.Data_Scene,CC.R_GRPFilename[id],idx[3],CC.SceneSize*JY.SceneNum);
 
-	for i=0,JY.WugongNum-1 do                --Îä¹¦
- 	    Byte.savefile(JY.Data_Wugong[i],CC.R_GRPFilename[id],idx[4]+i*CC.WugongSize,CC.WugongSize);
-	end
+	Byte.savefile(JY.Data_Wugong,CC.R_GRPFilename[id],idx[4],CC.WugongSize*JY.WugongNum);
 
-	for i=0,JY.ShopNum-1 do                --Ğ¡±¦ÉÌµê
-  		Byte.savefile(JY.Data_Shop[i],CC.R_GRPFilename[id],idx[5]+i*CC.ShopSize,CC.ShopSize);
-	end
+	Byte.savefile(JY.Data_Shop,CC.R_GRPFilename[id],idx[5],CC.ShopSize*JY.ShopNum);
 
     lib.SaveSMap(CC.S_Filename[id],CC.D_Filename[id]);
+    lib.Debug(string.format("SaveRecord time=%d",lib.GetTime()-t1));
 
 end
-
 -------------------------------------------------------------------------------------
 -----------------------------------Í¨ÓÃº¯Êı-------------------------------------------
 
@@ -1507,56 +1733,55 @@ end
 
 --¶ÁS¡ÁÊı¾İ, (x,y) ×ø±ê£¬level ²ã 0-5
 function GetS(id,x,y,level)       --¶ÁS¡ÁÊı¾İ
-     return lib.GetS(id,x,y,level);
+    return lib.GetS(id,x,y,level);
 end
 
 --Ğ´S¡Á
 function SetS(id,x,y,level,v)       --Ğ´S¡Á
-     lib.SetS(id,x,y,level,v);
+    lib.SetS(id,x,y,level,v);
 end
-
-
 
 --¶ÁD*
 --sceneid ³¡¾°±àºÅ£¬
 --id D*±àºÅ
 --Òª¶ÁµÚ¼¸¸öÊı¾İ, 0-10
 function GetD(Sceneid,id,i)          --¶ÁD*
-      return lib.GetD(Sceneid,id,i);
+    return lib.GetD(Sceneid,id,i);
 end
 
 --Ğ´D¡Á
 function SetD(Sceneid,id,i,v)         --Ğ´D¡Á
-      lib.SetD(Sceneid,id,i,v);
+    lib.SetD(Sceneid,id,i,v);
 end
 
 --´ÓÊı¾İµÄ½á¹¹ÖĞ·­ÒëÊı¾İ
 --data ¶ş½øÖÆÊı×é
+--offset dataÖĞµÄÆ«ÒÆ
 --t_struct Êı¾İµÄ½á¹¹£¬ÔÚjyconstÖĞÓĞºÜ¶à¶¨Òå
 --key  ·ÃÎÊµÄkey
-function GetDataFromStruct(data,t_struct,key)  --´ÓÊı¾İµÄ½á¹¹ÖĞ·­ÒëÊı¾İ£¬ÓÃÀ´È¡Êı¾İ
+function GetDataFromStruct(data,offset,t_struct,key)  --´ÓÊı¾İµÄ½á¹¹ÖĞ·­ÒëÊı¾İ£¬ÓÃÀ´È¡Êı¾İ
     local t=t_struct[key];
 	local r;
 	if t[2]==0 then
-		r=Byte.get16(data,t[1]);
+		r=Byte.get16(data,t[1]+offset);
 	elseif t[2]==1 then
-		r=Byte.getu16(data,t[1]);
+		r=Byte.getu16(data,t[1]+offset);
 	elseif t[2]==2 then
 		if CC.SrcCharSet==0 then
-			r=lib.CharSet(Byte.getstr(data,t[1],t[3]),0);
+			r=lib.CharSet(Byte.getstr(data,t[1]+offset,t[3]),0);
 		else
-			r=Byte.getstr(data,t[1],t[3]);
+			r=Byte.getstr(data,t[1]+offset,t[3]);
 		end
 	end
 	return r;
 end
 
-function SetDataFromStruct(data,t_struct,key,v)  --´ÓÊı¾İµÄ½á¹¹ÖĞ·­ÒëÊı¾İ£¬±£´æÊı¾İ
+function SetDataFromStruct(data,offset,t_struct,key,v)  --´ÓÊı¾İµÄ½á¹¹ÖĞ·­ÒëÊı¾İ£¬±£´æÊı¾İ
     local t=t_struct[key];
 	if t[2]==0 then
-		Byte.set16(data,t[1],v);
+		Byte.set16(data,t[1]+offset,v);
 	elseif t[2]==1 then
-		Byte.setu16(data,t[1],v);
+		Byte.setu16(data,t[1]+offset,v);
 	elseif t[2]==2 then
 		local s;
 		if CC.SrcCharSet==0 then
@@ -1564,10 +1789,9 @@ function SetDataFromStruct(data,t_struct,key,v)  --´ÓÊı¾İµÄ½á¹¹ÖĞ·­ÒëÊı¾İ£¬±£´æÊ
 		else
 			s=v;
 		end
-		Byte.setstr(data,t[1],t[3],s);
+		Byte.setstr(data,t[1]+offset,t[3],s);
 	end
 end
-
 
 --°´ÕÕt_struct ¶¨ÒåµÄ½á¹¹°ÑÊı¾İ´Ódata¶ş½øÖÆ´®ÖĞ¶Áµ½±ítÖĞ
 function LoadData(t,t_struct,data)        --data¶ş½øÖÆ´®ÖĞ¶Áµ½±ítÖĞ
@@ -1585,7 +1809,6 @@ function LoadData(t,t_struct,data)        --data¶ş½øÖÆ´®ÖĞ¶Áµ½±ítÖĞ
 		end
 	end
 end
-
 
 --°´ÕÕt_struct ¶¨ÒåµÄ½á¹¹°ÑÊı¾İĞ´Èëdata ByteÊı×éÖĞ¡£
 function SaveData(t,t_struct,data)      --Êı¾İĞ´Èëdata ByteÊı×éÖĞ¡£
@@ -1606,12 +1829,10 @@ function SaveData(t,t_struct,data)      --Êı¾İĞ´Èëdata ByteÊı×éÖĞ¡£
 	end
 end
 
-
 function limitX(x,minv,maxv)       --ÏŞÖÆxµÄ·¶Î§
     if x<minv then
 	    x=minv;
-	end
-	if x>maxv then
+	elseif x>maxv then
 	    x=maxv;
 	end
 	return x
@@ -1673,12 +1894,9 @@ end
 
 --ÏÔÊ¾ÒõÓ°×Ö·û´®
 function DrawString(x,y,str,color,size)         --ÏÔÊ¾ÒõÓ°×Ö·û´®
-
-    local r,g,b=GetRGB(color);
-    lib.DrawStr(x+1,y+1,str,RGB(math.modf(r/2),math.modf(g/2),math.modf(b/2)),size,CC.FontName,CC.SrcCharSet,CC.OSCharSet);
-
+--    local r,g,b=GetRGB(color);
+--    lib.DrawStr(x+1,y+1,str,RGB(math.modf(r/2),math.modf(g/2),math.modf(b/2)),size,CC.FontName,CC.SrcCharSet,CC.OSCharSet);
     lib.DrawStr(x,y,str,color,size,CC.FontName,CC.SrcCharSet,CC.OSCharSet);
-
 end
 
 --ÏÔÊ¾´ø¿òµÄ×Ö·û´®
@@ -1687,14 +1905,15 @@ function DrawStrBox(x,y,str,color,size)         --ÏÔÊ¾´ø¿òµÄ×Ö·û´®
     local ll=#str;
     local w=size*ll/2+2*CC.MenuBorderPixel;
 	local h=size+2*CC.MenuBorderPixel;
-	if x==-1 and y==-1 then
+	if x==-1 then
         x=(CC.ScreenW-size/2*ll-2*CC.MenuBorderPixel)/2;
+	end
+	if y==-1 then
         y=(CC.ScreenH-size-2*CC.MenuBorderPixel)/2;
 	end
 
     DrawBox(x,y,x+w-1,y+h-1,C_WHITE);
     DrawString(x+CC.MenuBorderPixel,y+CC.MenuBorderPixel,str,color,size);
-
 end
 
 --ÏÔÊ¾²¢Ñ¯ÎÊY/N£¬Èç¹ûµã»÷Y£¬Ôò·µ»Øtrue, NÔò·µ»Øfalse
@@ -1705,8 +1924,10 @@ function DrawStrBoxYesNo(x,y,str,color,size)        --ÏÔÊ¾×Ö·û´®²¢Ñ¯ÎÊY/N
     local ll=#str;
     local w=size*ll/2+2*CC.MenuBorderPixel;
 	local h=size+2*CC.MenuBorderPixel;
-	if x==-1 and y==-1 then
+	if x==-1 then
         x=(CC.ScreenW-size/2*ll-2*CC.MenuBorderPixel)/2;
+	end
+	if y==-1 then
         y=(CC.ScreenH-size-2*CC.MenuBorderPixel)/2;
 	end
 
@@ -1802,10 +2023,14 @@ function PlayWavE(id)              --²¥·ÅÒôĞ§e**
     end
 end
 
-
-function ShowScreen()              --Ë¢ĞÂÆÁÄ»ÏÔÊ¾
+--flag =0 or nil È«²¿Ë¢ĞÂÆÁÄ»
+--      1 ¿¼ÂÇÔà¾ØĞÎµÄ¿ìËÙË¢ĞÂ
+function ShowScreen(flag)              --Ë¢ĞÂÆÁÄ»ÏÔÊ¾
     if JY.Darkness==0 then
-	    lib.ShowSurface();
+	    if flag==nil then
+		    flag=0;
+		end
+	    lib.ShowSurface(flag);
     end
 end
 
@@ -1892,12 +2117,12 @@ function ShowMenu(menuItem,numItem,numShow,x1,y1,x2,y2,isBox,isEsc,size,color,se
 	    current=1;
 	end
 
-
     local keyPress =-1;
     local returnValue =0;
 	if isBox==1 then
 		DrawBox(x1,y1,x1+w,y1+h,C_WHITE);
 	end
+
     while true do
 	    if numShow ~=0 then
 	        Cls(x1,y1,x1+w,y1+h);
@@ -1918,7 +2143,6 @@ function ShowMenu(menuItem,numItem,numShow,x1,y1,x2,y2,isBox,isEsc,size,color,se
 	    ShowScreen();
 		keyPress=WaitKey();
 		lib.Delay(100);
-
 		if keyPress==VK_ESCAPE then                  --Esc ÍË³ö
 		    if isEsc==1 then
 		        break;
@@ -1961,6 +2185,7 @@ function ShowMenu(menuItem,numItem,numShow,x1,y1,x2,y2,isBox,isEsc,size,color,se
     end
 
     Cls(x1,y1,x1+w+1,y1+h+1,0,1);
+
     return returnValue;
 end
 
@@ -2018,7 +2243,6 @@ function ShowMenu2(menuItem,numItem,numShow,x1,y1,x2,y2,isBox,isEsc,size,color,s
 	if numShow~=0 then
 	    current=1;
 	end
-
 
     local keyPress =-1;
     local returnValue =0;
@@ -2165,16 +2389,12 @@ function UseThing_Type1(id)            --×°±¸ÎïÆ·Ê¹ÓÃ
             end
             JY.Thing[id]["Ê¹ÓÃÈË"]=personid
         else
-            Cls();
-            DrawStrBox(-1,-1,"´ËÈË²»ÊÊºÏÅä±¸´ËÎïÆ·",C_WHITE,CC.DefaultFont);
-            ShowScreen();
-            WaitKey();
+            DrawStrBoxWaitKey("´ËÈË²»ÊÊºÏÅä±¸´ËÎïÆ·",C_WHITE,CC.DefaultFont);
 			return 0;
         end
     end
-
-    Cls();
-    ShowScreen();
+--    Cls();
+--    ShowScreen();
 	return 1;
 end
 
@@ -2268,31 +2488,21 @@ function UseThing_Type2(id)               --ÃØ¼®ÎïÆ·Ê¹ÓÃ
                 end
             end
             if yes==0 and JY.Person[personid]["Îä¹¦10"]>0 then
-                Cls();
-                DrawStrBox(-1,-1,"Ò»¸öÈËÖ»ÄÜĞŞÁ¶10ÖÖÎä¹¦",C_WHITE,CC.DefaultFont);
-                ShowScreen();
-                WaitKey();
-                Cls();
-                ShowScreen();
+                DrawStrBoxWaitKey("Ò»¸öÈËÖ»ÄÜĞŞÁ¶10ÖÖÎä¹¦",C_WHITE,CC.DefaultFont);
                 return 0;
             end
         end
 
-       if id==78 or id==93 then                --±ÙĞ°ºÍ¿û»¨
+       if CC.Shemale[id]==1 then                --±ÙĞ°ºÍ¿û»¨
 		    if JY.Person[personid]["ĞÔ±ğ"]==0 then
 				Cls(CC.MainSubMenuX,CC.MainSubMenuY,CC.ScreenW,CC.ScreenH);
 				if DrawStrBoxYesNo(-1,-1,"ĞŞÁ¶´ËÊé±ØĞëÏÈ»Óµ¶×Ô¹¬£¬ÊÇ·ñÈÔÒªĞŞÁ¶?",C_WHITE,CC.DefaultFont)==false then
-					Cls(CC.MainSubMenuX,CC.MainSubMenuY,CC.ScreenW,CC.ScreenH);
-					ShowScreen();
 					return 0;
 				else
 					JY.Person[personid]["ĞÔ±ğ"]=2;
 				end
 			elseif JY.Person[personid]["ĞÔ±ğ"]==1 then
-				Cls();
-				DrawStrBox(-1,-1,"´ËÈË²»ÊÊºÏĞŞÁ¶´ËÎïÆ·",C_WHITE,CC.DefaultFont);
-				ShowScreen();
-				WaitKey();
+				DrawStrBoxWaitKey("´ËÈË²»ÊÊºÏĞŞÁ¶´ËÎïÆ·",C_WHITE,CC.DefaultFont);
 				return 0;
 			end
         end
@@ -2300,8 +2510,6 @@ function UseThing_Type2(id)               --ÃØ¼®ÎïÆ·Ê¹ÓÃ
 
         if CanUseThing(id,personid) then
             if JY.Thing[id]["Ê¹ÓÃÈË"]==personid then
-                Cls();
-                ShowScreen();
                 return 0;
             end
 
@@ -2320,16 +2528,11 @@ function UseThing_Type2(id)               --ÃØ¼®ÎïÆ·Ê¹ÓÃ
             JY.Person[personid]["ĞŞÁ¶µãÊı"]=0;
             JY.Person[personid]["ÎïÆ·ĞŞÁ¶µãÊı"]=0;
         else
-            Cls();
-            DrawStrBox(-1,-1,"´ËÈË²»ÊÊºÏĞŞÁ¶´ËÎïÆ·",C_WHITE,CC.DefaultFont);
-            ShowScreen();
-            WaitKey();
+            DrawStrBoxWaitKey("´ËÈË²»ÊÊºÏĞŞÁ¶´ËÎïÆ·",C_WHITE,CC.DefaultFont);
 			return 0;
         end
     end
 
-    Cls();
-    ShowScreen();
 	return 1;
 end
 
@@ -2357,8 +2560,8 @@ function UseThing_Type3(id)        --Ò©Æ·ÎïÆ·Ê¹ÓÃ
         end
     end
 
-    Cls();
-    ShowScreen();
+ --   Cls();
+ --   ShowScreen();
 	return 1;
 end
 
@@ -2477,6 +2680,7 @@ function EventExecute(id,flag)               --ÊÂ¼şµ÷ÓÃÖ÷Èë¿Ú
         JY.SceneNewEventFunction[JY.SubScene](flag)         --µ÷ÓÃĞÂµÄÊÂ¼ş´¦Àíº¯Êı
     end
     JY.CurrentD=-1;
+	JY.Darkness=0;
 end
 
 --µ÷ÓÃÔ­ÓĞµÄÖ¸¶¨Î»ÖÃµÄº¯Êı
@@ -2492,11 +2696,7 @@ function oldEventExecute(flag)            --µ÷ÓÃÔ­ÓĞµÄÖ¸¶¨Î»ÖÃµÄº¯Êı
 		eventnum=GetD(JY.SubScene,JY.CurrentD,4);
 	end
 
-	if eventnum>=0 then
-	--	local funstr=string.format("oldevent_%d();",eventnum);    --¸ù¾İÊÂ¼ş±àºÅ£¬Éú³ÉÏàÓ¦º¯ÊıÃû
-    --		local f=loadstring(funstr);    --¼ÓÔØº¯Êı
-	--	lib.Debug(funstr);
-	--	f();        --µ÷ÓÃº¯Êı
+	if eventnum>0 then
 	    oldCallEvent(eventnum);
 	end
 
@@ -2532,8 +2732,8 @@ function Cls(x1,y1,x2,y2)                    --Çå³ıÆÁÄ»
     if x1==nil then        --µÚÒ»¸ö²ÎÊıÎªnil,±íÊ¾Ã»ÓĞ²ÎÊı£¬ÓÃÈ±Ê¡
 	    x1=0;
 		y1=0;
-		x2=CC.ScreenW;
-		y2=CC.ScreenH;
+		x2=0;
+		y2=0;
 	end
 
 	lib.SetClip(x1,y1,x2,y2);
@@ -2551,7 +2751,7 @@ function Cls(x1,y1,x2,y2)                    --Çå³ıÆÁÄ»
 	    lib.FillColor(0,0,0,0,0);
         lib.LoadPicture(CC.DeadFile,-1,-1);
 	end
-	lib.SetClip(0,0,CC.ScreenW,CC.ScreenH);
+	lib.SetClip(0,0,0,0);
 end
 
 
@@ -2716,12 +2916,70 @@ end
 --            5 ÆÁÄ»ÏÂ·½ÏÔÊ¾, ×ó±ßÍ·Ïñ£¬ÓÒ±ß¶Ô»°
 
 function instruct_1(talkid,headid,flag)        --¶Ô»°
-    local s=oldtalk[talkid];
+    local s=ReadTalk(talkid);
 	if s==nil then        --¶Ô»°id²»´æÔÚ
 	    return ;
 	end
-    TalkEx(oldtalk[talkid],headid,flag);
+    TalkEx(s,headid,flag);
 end
+
+--¸ù¾İoldtalk.grpÎÄ¼şÀ´idxË÷ÒıÎÄ¼ş¡£¹©ºóÃæ¶Á¶Ô»°Ê¹ÓÃ
+function GenTalkIdx()         --Éú³É¶Ô»°Ë÷ÒıÎÄ¼ş
+	os.remove(CC.TalkIdxFile);
+	local p=io.open(CC.TalkIdxFile,"w");
+	p:close();
+
+	p=io.open(CC.TalkGrpFile,"r");
+	local num=0
+	for line in p:lines() do
+	    num=num+1;
+	end
+    p:seek("set",0);
+	local data=Byte.create(num*4);
+
+	for i=0,num-1 do
+	    local talk=p:read("*line");
+		local offset=p:seek();
+		Byte.set32(data,i*4,offset);
+	end
+    p:close();
+
+	Byte.savefile(data,CC.TalkIdxFile,0,num*4);
+end
+
+--´Óold_talk.luaÖĞ¶ÁÈ¡±àºÅÎªtalkidµÄ×Ö·û´®¡£
+--ĞèÒªµÄÊ±ºò¶ÁÈ¡£¬¿ÉÒÔ½ÚÔ¼ÄÚ´æÕ¼ÓÃ£¬²»ÓÃÔÙ°ÑÕû¸öÎÄ¼ş¶ÁÈëÄÚ´æÊı¾İÁË¡£
+function ReadTalk(talkid)            --´ÓÎÄ¼ş¶ÁÈ¡Ò»Ìõ¶Ô»°
+	local idxfile=CC.TalkIdxFile
+    local grpfile=CC.TalkGrpFile
+
+	local length=filelength(idxfile);
+
+	if talkid<0 and talkid>=length/4 then
+	    return
+	end
+
+	local data=Byte.create(2*4);
+	local id1,id2;
+	if talkid==0 then
+        Byte.loadfile(data,idxfile,0,4);
+		id1=0;
+	    id2=Byte.get32(data,0);
+    else
+        Byte.loadfile(data,idxfile,(talkid-1)*4,4*2);
+		id1=Byte.get32(data,0);
+	    id2=Byte.get32(data,4);
+    end
+
+    local p=io.open(grpfile,"r");
+    p:seek("set",id1);
+	local talk=p:read("*line");
+	p:close();
+
+	return talk;
+
+end
+
 
 --µÃµ½ÎïÆ·
 function instruct_2(thingid,num)            --µÃµ½ÎïÆ·
@@ -2797,16 +3055,14 @@ function instruct_3(sceneid,id,v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10)     --ĞŞ¸ÄD*
         SetD(sceneid,id,8,v8)
     end
 
-    SetS(sceneid,GetD(sceneid,id,9),GetD(sceneid,id,10),3,-1);   --Èç¹ûxy×ø±êÒÆ¶¯ÁË£¬ÄÇÃ´SÖĞÏàÓ¦Êı¾İÒªĞŞ¸Ä¡£
-
-    if v9~=-2 then
-        SetD(sceneid,id,9,v9)
-    end
-
-    if v10~=-2 then
-        SetD(sceneid,id,10,v10)
-    end
-    SetS(sceneid,GetD(sceneid,id,9),GetD(sceneid,id,10),3,id);
+    if v9~=-2 and v10 ~=-2 then
+	    if v9>0 and v10 >0 then   --ÎªÁËºÍ²ÔÁú¼æÈİ£¬ĞŞ¸ÄµÄ×ø±ê²»ÄÜÎª0
+            SetS(sceneid,GetD(sceneid,id,9),GetD(sceneid,id,10),3,-1);   --Èç¹ûxy×ø±êÒÆ¶¯ÁË£¬ÄÇÃ´SÖĞÏàÓ¦Êı¾İÒªĞŞ¸Ä¡£
+            SetD(sceneid,id,9,v9)
+            SetD(sceneid,id,10,v10)
+            SetS(sceneid,GetD(sceneid,id,9),GetD(sceneid,id,10),3,id);
+		end
+	end
 end
 
 --ÊÇ·ñÊ¹ÓÃÎïÆ·´¥·¢
@@ -2970,6 +3226,8 @@ end
 function instruct_19(x,y)             --¸Ä±äÖ÷½ÇÎ»ÖÃ
     JY.Base["ÈËX1"]=x;
     JY.Base["ÈËY1"]=y;
+	JY.SubSceneX=0;
+	JY.SubSceneY=0;
 end
 
 
@@ -3050,9 +3308,11 @@ function instruct_25(x1,y1,x2,y2)             --³¡¾°ÒÆ¶¯
         else
             sign=1;
         end
-        for i=y1,y2,sign do
+        for i=y1+sign,y2,sign do
             local t1=lib.GetTime();
             JY.SubSceneY=JY.SubSceneY+sign;
+	        --JY.oldSMapX=-1;
+		    --JY.oldSMapY=-1;
             DrawSMap();
             ShowScreen();
             local t2=lib.GetTime();
@@ -3068,9 +3328,12 @@ function instruct_25(x1,y1,x2,y2)             --³¡¾°ÒÆ¶¯
         else
             sign=1;
         end
-        for i=x1,x2,sign do
+        for i=x1+sign,x2,sign do
             local t1=lib.GetTime();
             JY.SubSceneX=JY.SubSceneX+sign;
+			--JY.oldSMapX=-1;
+			--JY.oldSMapY=-1;
+
             DrawSMap();
             ShowScreen();
             local t2=lib.GetTime();
@@ -3104,7 +3367,8 @@ function instruct_27(id,startpic,endpic)           --ÏÔÊ¾¶¯»­
         old3=GetD(JY.SubScene,id,7);
     end
 
-    Cls();
+    --Cls();
+	--ShowScreen();
     for i =startpic,endpic,2 do
         local t1=lib.GetTime();
         if id==-1 then
@@ -3152,8 +3416,11 @@ end
 --Ö÷½Ç×ß¶¯
 --Îª¼ò»¯£¬×ß¶¯Ê¹ÓÃÏà¶ÔÖµ(x2-x1)(y2-y1),Òò´Ëx1,y1¿ÉÒÔÎª0£¬²»±ØÒ»¶¨ÒªÎªµ±Ç°×ø±ê¡£
 function instruct_30(x1,y1,x2,y2)                --Ö÷½Ç×ß¶¯
+    --Cls();
+    --ShowScreen();
+
     if x1<x2 then
-        for i=x1,x2 do
+        for i=x1+1,x2 do
             local t1=lib.GetTime();
             instruct_30_sub(1);
             local t2=lib.GetTime();
@@ -3162,7 +3429,7 @@ function instruct_30(x1,y1,x2,y2)                --Ö÷½Ç×ß¶¯
             end
         end
     elseif x1>x2 then
-        for i=x2,x1 do
+        for i=x2+1,x1 do
             local t1=lib.GetTime();
             instruct_30_sub(2);
             local t2=lib.GetTime();
@@ -3173,7 +3440,7 @@ function instruct_30(x1,y1,x2,y2)                --Ö÷½Ç×ß¶¯
     end
 
     if y1<y2 then
-        for i=y1,y2 do
+        for i=y1+1,y2 do
             local t1=lib.GetTime();
             instruct_30_sub(3);
             local t2=lib.GetTime();
@@ -3182,7 +3449,7 @@ function instruct_30(x1,y1,x2,y2)                --Ö÷½Ç×ß¶¯
             end
         end
     elseif y1>y2 then
-        for i=y2,y1 do
+        for i=y2+1,y1 do
             local t1=lib.GetTime();
             instruct_30_sub(0);
             local t2=lib.GetTime();
@@ -3211,7 +3478,7 @@ function instruct_30_sub(direct)            --Ö÷½Ç×ß¶¯sub
     JY.Base["ÈËY1"]=limitX(JY.Base["ÈËY1"],1,CC.SHeight-2);
 
     DrawSMap();
-    Cls();
+--    Cls();
     ShowScreen();
 end
 
@@ -3406,7 +3673,8 @@ function instruct_44(id1,startpic1,endpic1,id2,startpic2,endpic2)     --Í¬Ê±ÏÔÊ¾
     local old5=GetD(JY.SubScene,id2,6);
     local old6=GetD(JY.SubScene,id2,7);
 
-    Cls();
+    --Cls();
+    --ShowScreen();
     for i =startpic1,endpic1,2 do
         local t1=lib.GetTime();
         if id1==-1 then
@@ -3542,7 +3810,8 @@ end
 --¸ß²ıÃÔ¹¬ÅüÃÅ
 function instruct_57()       --¸ß²ıÃÔ¹¬ÅüÃÅ
     instruct_27(-1,7664,7674);
-
+    --Cls();
+	--ShowScreen();
     for i=0,56,2 do
 	    local t1=lib.GetTime();
         if JY.MyPic< 7688/2 then
@@ -3692,7 +3961,7 @@ function instruct_62(id1,startnum1,endnum1,id2,startnum2,endnum2)      --²¥·ÅÊ±¿
       --´Ë´¦Ó¦¸Ã²åÈëÕı¹æµÄÆ¬Î²¶¯»­¡£ÕâÀïÔİÊ±ÓÃÍ¼Æ¬´úÌæ
 
 	  lib.LoadPicture(CONFIG.PicturePath .."end.png",-1,-1);
-	  lib.ShowSurface();
+	  ShowScreen();
 	  PlayMIDI(24);
 	  lib.Delay(5000);
 	  lib.GetKey();
@@ -3849,6 +4118,8 @@ function WarSetGlobal()            --ÉèÖÃÕ½¶·È«³Ì±äÁ¿
     WAR.EffectColor[5]=RGB(96, 176, 64)
     WAR.EffectColor[6]=RGB(104, 192, 232);
 
+	WAR.EffectXY=nil            --±£´æÎä¹¦Ğ§¹û²úÉúµÄ×ø±ê
+	WAR.EffectXYNum=0;          --×ø±ê¸öÊı
 
 end
 
@@ -3879,29 +4150,46 @@ function WarMain(warid,isexp)           --Õ½¶·Ö÷º¯Êı
     JY.Status=GAME_WMAP;
 
 	--¼ÓÔØÌùÍ¼ÎÄ¼ş
-    lib.PicLoadFile(CC.WMAPPicFile,0);
-    lib.PicLoadFile(CC.HeadPicFile,1);
-    lib.PicLoadFile(CC.ThingPicFile,2);
-    lib.PicLoadFile(CC.EffectFile,3);
+    lib.PicLoadFile(CC.WMAPPicFile[1],CC.WMAPPicFile[2],0);
+    lib.PicLoadFile(CC.HeadPicFile[1],CC.HeadPicFile[2],1);
+	if CC.LoadThingPic==1 then
+        lib.PicLoadFile(CC.ThingPicFile[1],CC.ThingPicFile[2],2);
+	end
+    lib.PicLoadFile(CC.EffectFile[1],CC.EffectFile[2],3);
 
     PlayMIDI(WAR.Data["ÒôÀÖ"]);
 
     local first=0;            --µÚÒ»´ÎÏÔÊ¾Õ½¶·±ê¼Ç
     local warStatus;          --Õ½¶·×´Ì¬
 
+	WarPersonSort();    --Õ½¶·ÈË°´Çá¹¦ÅÅĞò
+
+	for i=0,WAR.PersonNum-1 do
+        local pid=WAR.Person[i]["ÈËÎï±àºÅ"];
+		lib.PicLoadFile(string.format(CC.FightPicFile[1],JY.Person[pid]["Í·Ïñ´úºÅ"]),
+		                string.format(CC.FightPicFile[2],JY.Person[pid]["Í·Ïñ´úºÅ"]),
+						4+i);
+	end
+
     while true do             --Õ½¶·Ö÷Ñ­»·
 
         for i=0,WAR.PersonNum-1 do
             WAR.Person[i]["ÌùÍ¼"]=WarCalPersonPic(i);
         end
-
-		WarPersonSort();    --Õ½¶·ÈË°´Çá¹¦ÅÅĞò
+		for i=0,WAR.PersonNum-1 do                ---¼ÆËã¸÷ÈËµÄÇá¹¦£¬°üÀ¨×°±¸¼Ó³É
+			local id=WAR.Person[i]["ÈËÎï±àºÅ"];
+			local move=math.modf(WAR.Person[i]["Çá¹¦"]/15)-math.modf(JY.Person[id]["ÊÜÉË³Ì¶È"]/40);
+			if move<0 then
+				move=0;
+			end
+			WAR.Person[i]["ÒÆ¶¯²½Êı"]=move;
+		end
 
 		WarSetPerson();     --ÉèÖÃÕ½¶·ÈËÎïÎ»ÖÃ
 
         local p=0;
         while p<WAR.PersonNum do       --Ã¿»ØºÏÕ½¶·Ñ­»·£¬Ã¿¸öÈËÂÖÁ÷Õ½¶·
-
+            collectgarbage("step",0);
 		    WAR.Effect=0;
             if WAR.AutoFight==1 then                 --ÎÒ·½×Ô¶¯Õ½¶·Ê±¶ÁÈ¡¼üÅÌ£¬¿´ÊÇ·ñÈ¡Ïû
                 local keypress=lib.GetKey();
@@ -3920,9 +4208,9 @@ function WarMain(warid,isexp)           --Õ½¶·Ö÷º¯Êı
 	                lib.ShowSlow(50,0)
                     first=1;
                 else
-                    WarDrawMap(0);
-                    WarShowHead();
-                    ShowScreen();
+--                    WarDrawMap(0);
+                    --WarShowHead();
+--                    ShowScreen();
                 end
 
                 local r;
@@ -3982,9 +4270,11 @@ function WarMain(warid,isexp)           --Õ½¶·Ö÷º¯Êı
 
     CleanMemory();
     lib.PicInit();
-    lib.PicLoadFile(CC.SMAPPicFile,0);
-    lib.PicLoadFile(CC.HeadPicFile,1);
-    lib.PicLoadFile(CC.ThingPicFile,2);
+    lib.PicLoadFile(CC.SMAPPicFile[1],CC.SMAPPicFile[2],0);
+    lib.PicLoadFile(CC.HeadPicFile[1],CC.HeadPicFile[2],1);
+	if CC.LoadThingPic==1 then
+        lib.PicLoadFile(CC.ThingPicFile[1],CC.ThingPicFile[2],2);
+	end
 
     JY.Status=GAME_SMAP;
 
@@ -4012,9 +4302,7 @@ function War_PersonLostLife()             --¼ÆËãÕ½¶·ºóÃ¿»ØºÏÓÉÓÚÖĞ¶¾»òÊÜÉË¶øµôÑª
 end
 
 
-
 function War_EndPersonData(isexp,warStatus)            --Õ½¶·ÒÔºóÉèÖÃÈËÎï²ÎÊı
-
 --µĞ·½ÈËÔ±²ÎÊı»Ö¸´
     for i=0,WAR.PersonNum-1 do
         local pid=WAR.Person[i]["ÈËÎï±àºÅ"]
@@ -4027,7 +4315,20 @@ function War_EndPersonData(isexp,warStatus)            --Õ½¶·ÒÔºóÉèÖÃÈËÎï²ÎÊı
         end
     end
 
-    if warStatus==2 and isexp==0 then
+    --ÎÒ·½ÈËÔ±²ÎÊı»Ö¸´£¬ÊäÓ®¶¼ÓĞ
+    for i=0,WAR.PersonNum-1 do
+        local pid=WAR.Person[i]["ÈËÎï±àºÅ"]
+        if WAR.Person[i]["ÎÒ·½"]==true then
+            if JY.Person[pid]["ÉúÃü"]<JY.Person[pid]["ÉúÃü×î´óÖµ"]/5 then
+                JY.Person[pid]["ÉúÃü"]=math.modf(JY.Person[pid]["ÉúÃü×î´óÖµ"]/5);
+            end
+            if JY.Person[pid]["ÌåÁ¦"]<10 then
+                JY.Person[pid]["ÌåÁ¦"]=10 ;
+            end
+        end
+    end
+
+    if warStatus==2 and isexp==0 then  --Êä£¬Ã»ÓĞ¾­Ñé£¬ÍË³ö
         return ;
     end
 
@@ -4050,18 +4351,6 @@ function War_EndPersonData(isexp,warStatus)            --Õ½¶·ÒÔºóÉèÖÃÈËÎï²ÎÊı
         end
     end
 
-    --ÎÒ·½ÈËÔ±²ÎÊı»Ö¸´£¬ÊäÓ®¶¼ÓĞ
-    for i=0,WAR.PersonNum-1 do
-        local pid=WAR.Person[i]["ÈËÎï±àºÅ"]
-        if WAR.Person[i]["ÎÒ·½"]==true then
-            if JY.Person[pid]["ÉúÃü"]<JY.Person[pid]["ÉúÃü×î´óÖµ"]/5 then
-                JY.Person[pid]["ÉúÃü"]=math.modf(JY.Person[pid]["ÉúÃü×î´óÖµ"]/5);
-            end
-            if JY.Person[pid]["ÌåÁ¦"]<10 then
-                JY.Person[pid]["ÌåÁ¦"]=10 ;
-            end
-        end
-    end
 
     --Ã¿¸öÈË¾­ÑéÔö¼Ó£¬ÒÔ¼°Éı¼¶
     for i=0,WAR.PersonNum-1 do
@@ -4264,7 +4553,7 @@ function War_PersonTrainDrug(pid)         --Õ½¶·ºóÊÇ·ñĞŞÁ¶³öÎïÆ·
         local enough={};
         local canMake=0;
         for i=1,5 do       --¸ù¾İĞèÒª²ÄÁÏµÄÊıÁ¿£¬±ê¼Ç¿ÉÒÔÁ·³öÄÄĞ©ÎïÆ·
-            if MaterialNum >= JY.Thing[thingid]["ĞèÒªÎïÆ·ÊıÁ¿" .. i] then
+            if JY.Thing[thingid]["Á·³öÎïÆ·" .. i] >=0 and MaterialNum >= JY.Thing[thingid]["ĞèÒªÎïÆ·ÊıÁ¿" .. i] then
                 canMake=1;
                 enough[i]=1;
             else
@@ -4380,23 +4669,28 @@ function WarSelectTeam()            --Ñ¡ÔñÎÒ·½²ÎÕ½ÈË
 
     menu[CC.TeamNum+1]={" ½áÊø",nil,1}
 
-    Cls();
-    local x=(CC.ScreenW-7*CC.DefaultFont-2*CC.MenuBorderPixel)/2;
-    DrawStrBox(x,10,"ÇëÑ¡Ôñ²ÎÕ½ÈËÎï",C_WHITE,CC.DefaultFont);
-    local r=ShowMenu(menu,CC.TeamNum+1,0,x,10+CC.SingleLineHeight,0,0,1,0,CC.DefaultFont,C_ORANGE,C_WHITE);
-    Cls();
-    for i=1,6 do
-        if WAR.SelectPerson[i]>0 then
-            WAR.Person[WAR.PersonNum]["ÈËÎï±àºÅ"]=JY.Base["¶ÓÎé" ..i];
-            WAR.Person[WAR.PersonNum]["ÎÒ·½"]=true;
-            WAR.Person[WAR.PersonNum]["×ø±êX"]=WAR.Data["ÎÒ·½X"  .. i];
-            WAR.Person[WAR.PersonNum]["×ø±êY"]=WAR.Data["ÎÒ·½Y"  .. i];
-            WAR.Person[WAR.PersonNum]["ËÀÍö"]=false;
-            WAR.Person[WAR.PersonNum]["ÈË·½Ïò"]=2;
-            WAR.PersonNum=WAR.PersonNum+1;
-        end
-    end
+	while true do
+		Cls();
+		local x=(CC.ScreenW-7*CC.DefaultFont-2*CC.MenuBorderPixel)/2;
+		DrawStrBox(x,10,"ÇëÑ¡Ôñ²ÎÕ½ÈËÎï",C_WHITE,CC.DefaultFont);
+		local r=ShowMenu(menu,CC.TeamNum+1,0,x,10+CC.SingleLineHeight,0,0,1,0,CC.DefaultFont,C_ORANGE,C_WHITE);
+		Cls();
 
+		for i=1,6 do
+			if WAR.SelectPerson[i]>0 then
+				WAR.Person[WAR.PersonNum]["ÈËÎï±àºÅ"]=JY.Base["¶ÓÎé" ..i];
+				WAR.Person[WAR.PersonNum]["ÎÒ·½"]=true;
+				WAR.Person[WAR.PersonNum]["×ø±êX"]=WAR.Data["ÎÒ·½X"  .. i];
+				WAR.Person[WAR.PersonNum]["×ø±êY"]=WAR.Data["ÎÒ·½Y"  .. i];
+				WAR.Person[WAR.PersonNum]["ËÀÍö"]=false;
+				WAR.Person[WAR.PersonNum]["ÈË·½Ïò"]=2;
+				WAR.PersonNum=WAR.PersonNum+1;
+			end
+		end
+		if WAR.PersonNum>0 then   --Ñ¡ÔñÁËÎÒ·½²ÎÕ½ÈË
+		   break;
+		end
+    end
 end
 
 
@@ -4440,7 +4734,6 @@ end
 --ÒÔÉÏÎªÕ½¶·µØÍ¼Êı¾İ£¬´ÓÕ½¶·ÎÄ¼şÖĞÔØÈë¡£ÏÂÃæÎª¹¤×÷ÓÃµÄµØÍ¼½á¹¹
 --        2²ã Õ½¶·ÈËÕ½¶·±àºÅ£¬¼´WAR.PersonµÄ±àºÅ
 --        3²ã ÒÆ¶¯Ê±ÏÔÊ¾¿ÉÒÆ¶¯µÄÎ»ÖÃ
---              µ±ÏÔÊ¾ÃüÖĞÊı×ÖÊÇ±£´æÃüÖĞÊı×Ö
 --        4²ã ÃüÖĞĞ§¹û
 --        5²ã Õ½¶·ÈË¶ÔÓ¦µÄÌùÍ¼
 
@@ -4467,39 +4760,25 @@ end
 --flag==0 »ù±¾
 --      1 ÏÔÊ¾ÒÆ¶¯Â·¾¶ (v1,v2) µ±Ç°ÒÆ¶¯Î»ÖÃ
 --      2 ÃüÖĞÈËÎï£¨Îä¹¦£¬Ò½ÁÆµÈ£©ÁíÒ»¸öÑÕÉ«ÏÔÊ¾
---      3 ÔÚÈËµÄÍ·¶¥ÏÔÊ¾µãÊı  v1 ÏÔÊ¾µÄ¸ß¶È
---      4 Õ½¶·¶¯»­, v1 Õ½¶·ÈËÎïpic, v2ÌùÍ¼ÀàĞÍ(0 Ê¹ÓÃÕ½¶·³¡¾°ÌùÍ¼£¬4£¬fight***ÌùÍ¼±àºÅ
+--      4 Õ½¶·¶¯»­, v1 Õ½¶·ÈËÎïpic, v2Õ½¶·ÈËÎïÌùÍ¼ÀàĞÍ(0 Ê¹ÓÃÕ½¶·³¡¾°ÌùÍ¼£¬4£¬fight***ÌùÍ¼±àºÅ v3 Îä¹¦Ğ§¹ûÌùÍ¼ -1Ã»ÓĞĞ§¹û
 
-function WarDrawMap(flag,v1,v2)
+function WarDrawMap(flag,v1,v2,v3)
     local x=WAR.Person[WAR.CurID]["×ø±êX"];
     local y=WAR.Person[WAR.CurID]["×ø±êY"];
 
     if flag==0 then
-	    lib.DrawWarMap(0,x,y,0,0);
+	    lib.DrawWarMap(0,x,y,0,0,-1);
     elseif flag==1 then
 		if WAR.Data["µØÍ¼"]==0 then     --Ñ©µØµØÍ¼ÓÃºÚÉ«ÁâĞÎ
-		    lib.DrawWarMap(1,x,y,v1,v2);
+		    lib.DrawWarMap(1,x,y,v1,v2,-1);
         else
-		    lib.DrawWarMap(2,x,y,v1,v2);
+		    lib.DrawWarMap(2,x,y,v1,v2,-1);
 		end
 	elseif flag==2 then
-	    lib.DrawWarMap(3,x,y,0,0);
-	elseif flag==3 then
-	    local color=WAR.EffectColor[WAR.Effect];
-	    lib.DrawWarNum(x,y,v1,color,CC.DefaultFont,CC.FontName,CC.SrcCharSet,CC.OSCharSet);
+	    lib.DrawWarMap(3,x,y,0,0,-1);
 	elseif flag==4 then
-	    lib.DrawWarMap(4,x,y,v1,v2);
+	    lib.DrawWarMap(4,x,y,v1,v2,v3);
 	end
-	if WAR.ShowHead==1 then
-        WarShowHead();
-	end
-end
-
-function WarDrawEffect(pic)
-    local x=WAR.Person[WAR.CurID]["×ø±êX"];
-    local y=WAR.Person[WAR.CurID]["×ø±êY"];
-
-    lib.DrawWarMap(5,x,y,pic,0);
 	if WAR.ShowHead==1 then
         WarShowHead();
 	end
@@ -4507,10 +4786,8 @@ end
 
 
 function WarPersonSort()               --Õ½¶·ÈËÎï°´Çá¹¦ÅÅĞò
-
     for i=0,WAR.PersonNum-1 do                ---¼ÆËã¸÷ÈËµÄÇá¹¦£¬°üÀ¨×°±¸¼Ó³É
         local id=WAR.Person[i]["ÈËÎï±àºÅ"];
-
         local add=0;
         if JY.Person[id]["ÎäÆ÷"]>-1 then
             add=add+JY.Thing[JY.Person[id]["ÎäÆ÷"]]["¼ÓÇá¹¦"];
@@ -4567,8 +4844,8 @@ end
 --·µ»Ø£¬Ñ¡ÖĞ²Ëµ¥±àºÅ£¬Ñ¡ÖĞ"µÈ´ı"Ê±ÓĞĞ§£¬
 function War_Manual()        --ÊÖ¶¯Õ½¶·
     local r;
-	WAR.ShowHead=1;          --ÏÔÊ¾Í·Ïñ
 	while true do
+	    WAR.ShowHead=1;          --ÏÔÊ¾Í·Ïñ
 	    r=War_Manual_Sub();  --ÊÖ¶¯Õ½¶·²Ëµ¥
         if math.abs(r)~=1 then        --ÒÆ¶¯Íê±Ïºó£¬ÖØĞÂÉú³É²Ëµ¥
 		    break;
@@ -4659,6 +4936,7 @@ function WarShowHead()               --ÏÔÊ¾Õ½¶·ÈËÍ·Ïñ
 	lib.PicLoadCache(1,p["Í·Ïñ´úºÅ"]*2,x1+5+headx,y1+5+heady,1);
 	x1=x1+5
 	y1=y1+5+100;
+
     DrawString(x1,y1,p["ĞÕÃû"],C_WHITE,16);
 
     local color;              --ÏÔÊ¾ÉúÃüºÍ×î´óÖµ£¬¸ù¾İÊÜÉËºÍÖĞ¶¾ÏÔÊ¾²»Í¬ÑÕÉ«
@@ -4694,7 +4972,6 @@ function WarShowHead()               --ÏÔÊ¾Õ½¶·ÈËÍ·Ïñ
 
 	DrawString(x1,y1+h*3,"ÌåÁ¦",C_ORANGE,16);
 	DrawString(x1+40,y1+h*3,string.format("%4d",p["ÌåÁ¦"]),C_GOLD,16);
-
 end
 
 
@@ -4714,11 +4991,10 @@ function War_MoveMenu()           --Ö´ĞĞÒÆ¶¯²Ëµ¥
         r=1;
 	else
 	    r=0
+		WAR.ShowHead=1;
+		Cls();
     end
-	WAR.ShowHead=1;
     lib.GetKey();
-	Cls();
-
     return r;
 end
 
@@ -4860,7 +5136,6 @@ end
 
 function War_MovePerson(x,y)            --ÒÆ¶¯ÈËÎïµ½Î»ÖÃx,y
 
-
     local movenum=GetWarMap(x,y,3);
     WAR.Person[WAR.CurID]["ÒÆ¶¯²½Êı"]=WAR.Person[WAR.CurID]["ÒÆ¶¯²½Êı"]-movenum;    --¿ÉÒÆ¶¯²½Êı¼õĞ¡
 
@@ -4884,7 +5159,6 @@ function War_MovePerson(x,y)            --ÒÆ¶¯ÈËÎïµ½Î»ÖÃx,y
         end
     end
 
-
     for i=1,movenum do
         local t1=lib.GetTime();
 
@@ -4902,13 +5176,14 @@ function War_MovePerson(x,y)            --ÒÆ¶¯ÈËÎïµ½Î»ÖÃx,y
 		WarDrawMap(0);
 		ShowScreen();
         local t2=lib.GetTime();
-        if (t2-t1)< 2*CC.Frame then
-            lib.Delay(2*CC.Frame-(t2-t1));
-        end
+		if i<movenum then
+			if (t2-t1)< 2*CC.Frame then
+				lib.Delay(2*CC.Frame-(t2-t1));
+			end
+		end
     end
 
 end
-
 
 
 function War_FightMenu()              --Ö´ĞĞ¹¥»÷²Ëµ¥
@@ -4953,7 +5228,6 @@ function War_Fight_Sub(id,wugongnum,x,y)          --Ö´ĞĞÕ½¶·
     local wugong=JY.Person[pid]["Îä¹¦" .. wugongnum];
     local level=math.modf(JY.Person[pid]["Îä¹¦µÈ¼¶" .. wugongnum]/100)+1;
 
-
    	CleanWarMap(4,0);
 
     local fightscope=JY.Wugong[wugong]["¹¥»÷·¶Î§"];
@@ -4979,8 +5253,6 @@ function War_Fight_Sub(id,wugongnum,x,y)          --Ö´ĞĞÕ½¶·
         fightnum=2;
     end
 
-    lib.PicLoadFile(string.format(CC.FightPicFile,JY.Person[pid]["Í·Ïñ´úºÅ"]),4);
-
 for k=1,fightnum  do         --Èç¹û×óÓÒ»¥²«£¬Ôò¹¥»÷Á½´Î
     for i=0,CC.WarWidth-1 do
         for j=0,CC.WarHeight-1 do
@@ -4989,25 +5261,23 @@ for k=1,fightnum  do         --Èç¹û×óÓÒ»¥²«£¬Ôò¹¥»÷Á½´Î
   				local emeny=GetWarMap(i,j,2);
                  if emeny>=0 then          --ÓĞÈË
                      if WAR.Person[WAR.CurID]["ÎÒ·½"] ~= WAR.Person[emeny]["ÎÒ·½"] then       --ÊÇµĞÈË
-                         if JY.Wugong[wugong]["ÉËº¦ÀàĞÍ"]==0 then             --É±ÉúÃü
-                            WAR.Person[emeny]["µãÊı"]=-War_WugongHurtLife(emeny,wugong,level)
-							WAR.Effect=2;
-							SetWarMap(i,j,4,2);
-                        else
-                            WAR.Person[emeny]["µãÊı"]=-War_WugongHurtNeili(emeny,wugong,level)
-							SetWarMap(i,j,4,3);
-							WAR.Effect=3;
-                        end
+					     --Ö»ÓĞµãºÍÃæ¹¥»÷¿ÉÒÔÉ±ÄÚÁ¦¡£´ËÊ±ÉËº¦ÀàĞÍÓĞĞ§
+					     if JY.Wugong[wugong]["ÉËº¦ÀàĞÍ"]==1 and (fightscope==0 or fightscope==3) then
+                             WAR.Person[emeny]["µãÊı"]=-War_WugongHurtNeili(emeny,wugong,level)
+							 SetWarMap(i,j,4,3);
+							 WAR.Effect=3;
+                         else
+                             WAR.Person[emeny]["µãÊı"]=-War_WugongHurtLife(emeny,wugong,level)
+							 WAR.Effect=2;
+							 SetWarMap(i,j,4,2);
+                         end
                      end
                  end
              end
          end
     end
 
-
-
-
-    War_ShowFight(pid,wugong,JY.Wugong[wugong]["Îä¹¦ÀàĞÍ"],JY.Wugong[wugong]["Îä¹¦¶¯»­&ÒôĞ§"]);
+    War_ShowFight(pid,wugong,JY.Wugong[wugong]["Îä¹¦ÀàĞÍ"],level,x,y,JY.Wugong[wugong]["Îä¹¦¶¯»­&ÒôĞ§"]);
 
     for i=0,WAR.PersonNum-1 do
         WAR.Person[i]["µãÊı"]=0;
@@ -5035,7 +5305,6 @@ end
     AddPersonAttrib(pid,"ÌåÁ¦",-3);
 
     return 1;
-
 end
 
 --Ñ¡Ôñµã¹¥»÷
@@ -5057,6 +5326,10 @@ function War_FightSelectType0(wugong,level,x1,y1)          --Ñ¡Ôñµã¹¥»÷
     WAR.Person[WAR.CurID]["ÈË·½Ïò"]=War_Direct(x0,y0,x1,y1);
 
 	SetWarMap(x1,y1,4,1);
+
+    WAR.EffectXY={};
+	WAR.EffectXY[1]={x1,y1};
+	WAR.EffectXY[2]={x1,y1};
 
 end
 
@@ -5097,19 +5370,33 @@ function War_FightSelectType1(wugong,level,x,y)            --Ñ¡ÔñÏß¹¥»÷
     WAR.Person[WAR.CurID]["ÈË·½Ïò"]=direct;
     local move=JY.Wugong[wugong]["ÒÆ¶¯·¶Î§" .. level]
 
+    WAR.EffectXY={};
+
     for i=1,move do
         if direct==0 then
             SetWarMap(x0,y0-i,4,1);
         elseif direct==3 then
             SetWarMap(x0,y0+i,4,1);
         elseif direct==2 then
-           SetWarMap(x0-i,y0,4,1);
+            SetWarMap(x0-i,y0,4,1);
         elseif direct==1 then
-           SetWarMap(x0+i,y0,4,1);
+            SetWarMap(x0+i,y0,4,1);
         end
     end
 
-
+	if direct==0 then
+		WAR.EffectXY[1]={x0,y0-1};
+		WAR.EffectXY[2]={x0,y0-move};
+	elseif direct==3 then
+		WAR.EffectXY[1]={x0,y0+1};
+		WAR.EffectXY[2]={x0,y0+move};
+	elseif direct==2 then
+		WAR.EffectXY[1]={x0-1,y0};
+		WAR.EffectXY[2]={x0-move,y0};
+	elseif direct==1 then
+		WAR.EffectXY[1]={x0+1,y0};
+		WAR.EffectXY[2]={x0+move,y0};
+	end
 
 end
 
@@ -5120,12 +5407,18 @@ function War_FightSelectType2(wugong,level)                 --Ñ¡ÔñÊ®×Ö¹¥»÷
 
     local move=JY.Wugong[wugong]["ÒÆ¶¯·¶Î§" .. level]
 
+    WAR.EffectXY={};
+
     for i=1,move do
         SetWarMap(x0,y0-i,4,1);
         SetWarMap(x0,y0+i,4,1);
-        SetWarMap(x0-i,y0,4,1);
-        SetWarMap(x0+i,y0,4,1);
+		SetWarMap(x0-i,y0,4,1);
+		SetWarMap(x0+i,y0,4,1);
     end
+
+	WAR.EffectXY[1]={x0-move,y0};
+	WAR.EffectXY[2]={x0+move,y0};
+
 end
 
 --Ñ¡ÔñÃæ¹¥»÷
@@ -5149,11 +5442,16 @@ function War_FightSelectType3(wugong,level,x1,y1)            --Ñ¡ÔñÃæ¹¥»÷
 
     local move=JY.Wugong[wugong]["É±ÉË·¶Î§" .. level]
 
+	WAR.EffectXY={};
+
     for i=-move,move do
         for j=-move,move do
 			SetWarMap(x1+i,y1+j,4,1);
-        end
+         end
     end
+
+	WAR.EffectXY[1]={x1-2*move,y1};
+	WAR.EffectXY[2]={x1+2*move,y1};
 end
 
 --¼ÆËãÈË·½Ïò
@@ -5183,9 +5481,14 @@ end
 --pid ÈËid
 --wugong  Îä¹¦±àºÅ£¬ 0 ±íÊ¾ÓÃ¶¾½â¶¾µÈ£¬Ê¹ÓÃÆÕÍ¨¹¥»÷Ğ§¹û
 --wogongtype =0 Ò½ÁÆÓÃ¶¾½â¶¾£¬1,2,3,4 Îä¹¦ÀàĞÍ  -1 °µÆ÷
+--level Îä¹¦µÈ¼¶
+--x,y ¹¥»÷×ø±ê
 --eft  Îä¹¦¶¯»­Ğ§¹ûid  eft.idx/grpÖĞµÄĞ§¹û
 
-function War_ShowFight(pid,wugong,wugongtype,eft)              --ÏÔÊ¾Õ½¶·¶¯»­
+function War_ShowFight(pid,wugong,wugongtype,level,x,y,eft)              --ÏÔÊ¾Õ½¶·¶¯»­
+
+	local x0=WAR.Person[WAR.CurID]["×ø±êX"];
+	local y0=WAR.Person[WAR.CurID]["×ø±êY"];
 
     local fightdelay,fightframe,sounddelay;
     if wugongtype>=0 then
@@ -5217,18 +5520,35 @@ function War_ShowFight(pid,wugong,wugongtype,eft)              --ÏÔÊ¾Õ½¶·¶¯»­
 
     WarSetPerson();
 
+	WarDrawMap(0);
+	ShowScreen();
+
+    local fastdraw;
+    if CONFIG.FastShowScreen==0 or CC.AutoWarShowHead==1 then    --ÏÔÊ¾Í·ÏñÔòÈ«²¿ÖØ»æ
+        fastdraw=0;
+	else
+	    fastdraw=1;
+	end
+
     --ÔÚÏÔÊ¾¶¯»­Ç°ÏÈ¼ÓÔØÌùÍ¼
+    local oldpic=WAR.Person[WAR.CurID]["ÌùÍ¼"]/2;
+	local oldpic_type=0;
+
+    local oldeft=-1;
 
     for i=0,framenum-1 do
-        local t1=lib.GetTime();
-        if fightframe>=0 then
+        local tstart=lib.GetTime();
+		local mytype;
+        if fightframe>0 then
             WAR.Person[WAR.CurID]["ÌùÍ¼ÀàĞÍ"]=1;
+		    mytype=4+WAR.CurID;
             if i<fightframe then
                 WAR.Person[WAR.CurID]["ÌùÍ¼"]=(startframe+WAR.Person[WAR.CurID]["ÈË·½Ïò"]*fightframe+i)*2;
             end
         else       --°µÆ÷£¬²»Ê¹ÓÃfightÖĞÍ¼Ïñ
             WAR.Person[WAR.CurID]["ÌùÍ¼ÀàĞÍ"]=0;
             WAR.Person[WAR.CurID]["ÌùÍ¼"]=WarCalPersonPic(WAR.CurID);
+			mytype=0;
         end
 
         if i==sounddelay then
@@ -5237,26 +5557,63 @@ function War_ShowFight(pid,wugong,wugongtype,eft)              --ÏÔÊ¾Õ½¶·¶¯»­
         if i==fightdelay then
             PlayWavE(eft);
         end
-        if(WAR.Person[WAR.CurID]["ÌùÍ¼ÀàĞÍ"]==0) then
-            WarDrawMap(4,WAR.Person[WAR.CurID]["ÌùÍ¼"],0);
+		local pic=WAR.Person[WAR.CurID]["ÌùÍ¼"]/2;
+		if fastdraw==1 then
+			local rr=ClipRect(Cal_PicClip(0,0,oldpic,oldpic_type,0,0,pic,mytype));
+			if rr ~=nil then
+				lib.SetClip(rr.x1,rr.y1,rr.x2,rr.y2);
+			end
 		else
-            WarDrawMap(4,WAR.Person[WAR.CurID]["ÌùÍ¼"],4);
+			lib.SetClip(0,0,0,0);
+		end
+		oldpic=pic;
+		oldpic_type=mytype;
+
+		if i<fightdelay then   --Ö»ÏÔÊ¾³öÕĞ
+		    WarDrawMap(4,pic*2,mytype,-1);
+		else		--Í¬Ê±ÏÔÊ¾Îä¹¦Ğ§¹û
+            starteft=starteft+1;            --´Ë´¦ËÆºõÊÇeftµÚÒ»¸öÊı¾İÓĞÎÊÌâ£¬Ó¦¸ÃÊÇ10£¬ÏÖÎª9£¬Òò´Ë¼Ó1
+
+			if fastdraw==1 then
+				local clip1={};
+				clip1=Cal_PicClip(WAR.EffectXY[1][1]-x0,WAR.EffectXY[1][2]-y0,oldeft,3,
+										WAR.EffectXY[1][1]-x0,WAR.EffectXY[1][2]-y0,starteft,3);
+				local clip2={};
+				clip2=Cal_PicClip(WAR.EffectXY[2][1]-x0,WAR.EffectXY[2][2]-y0,oldeft,3,
+										WAR.EffectXY[2][1]-x0,WAR.EffectXY[2][2]-y0,starteft,3);
+				local clip=ClipRect(MergeRect(clip1,clip2));
+
+				if clip ~=nil then
+					local area=(clip.x2-clip.x1)*(clip.y2-clip.y1);          --¼ÆËãÔà¾ØĞÎÃæ»ı
+					if area <CC.ScreenW*CC.ScreenH/2 then        --Ãæ»ı×ã¹»Ğ¡£¬Ôò¸üĞÂÔà¾ØĞÎ¡£
+						WarDrawMap(4,pic*2,mytype,starteft*2);
+						lib.SetClip(clip.x1,clip.y1,clip.x2,clip.y2);
+						WarDrawMap(4,pic*2,mytype,starteft*2);
+					else    --Ãæ»ıÌ«´ó£¬Ö±½ÓÖØ»æ
+						lib.SetClip(0,0,CC.ScreenW,CC.ScreenH);
+						WarDrawMap(4,pic*2,mytype,starteft*2);
+					end
+				else
+				    WarDrawMap(4,pic*2,mytype,starteft*2);
+				end
+			else
+				lib.SetClip(0,0,0,0);
+				WarDrawMap(4,pic*2,mytype,starteft*2);
+			end
+			oldeft=starteft;
 		end
 
+		ShowScreen(fastdraw);
+        lib.SetClip(0,0,0,0);
 
-
-        if i>=fightdelay then           --ÏÔÊ¾Îä¹¦Ğ§¹û
-            starteft=starteft+1;            --´Ë´¦ËÆºõÊÇeftµÚÒ»¸öÊı¾İÓĞÎÊÌâ£¬Ó¦¸ÃÊÇ10£¬ÏÖÎª9£¬Òò´Ë¼Ó1
-            WarDrawEffect(starteft*2);
-        end
-        ShowScreen();
-		local t2=lib.GetTime();
-    	if t2-t1<CC.Frame then
-            lib.Delay(CC.Frame-(t2-t1));
+		local tend=lib.GetTime();
+    	if tend-tstart<1*CC.Frame then
+            lib.Delay(1*CC.Frame-(tend-tstart));
 	    end
 
     end
 
+	lib.SetClip(0,0,0,0);
     WAR.Person[WAR.CurID]["ÌùÍ¼ÀàĞÍ"]=0;
     WAR.Person[WAR.CurID]["ÌùÍ¼"]=WarCalPersonPic(WAR.CurID);
     WarSetPerson();
@@ -5269,30 +5626,78 @@ function War_ShowFight(pid,wugong,wugongtype,eft)              --ÏÔÊ¾Õ½¶·¶¯»­
     ShowScreen();
     lib.Delay(200);
 
-	CleanWarMap(3,0);         --ÔÚµØÍ¼3Ğ´ÃüÖĞµãÊı
+    WarDrawMap(0);
+    ShowScreen();
 
+    local HitXY={};               --¼ÇÂ¼ÃüÖĞµãÊıµÄ×ø±ê
+	local HitXYNum=0;
     for i = 0, WAR.PersonNum-1 do
 	    local x1=WAR.Person[i]["×ø±êX"];
 	    local y1=WAR.Person[i]["×ø±êY"];
 		if WAR.Person[i]["ËÀÍö"]==false then
  		    if GetWarMap(x1,y1,4)>1 then
-		        SetWarMap(x1,y1,3,WAR.Person[i]["µãÊı"]);
+			    local n=WAR.Person[i]["µãÊı"]
+				HitXY[HitXYNum]={x1,y1,string.format("%+d",n)};
+				HitXYNum=HitXYNum+1;
  		    end
 		end
 	end
 
+if HitXYNum>0 then
+	local clips={};                --¼ÆËãÃüÖĞµãÊıclip
+	for i=0,HitXYNum-1 do
+		local dx=HitXY[i][1]-x0;
+		local dy=HitXY[i][2]-y0;
+		local ll=string.len(HitXY[i][3]);
+		local w=ll*CC.DefaultFont/2+1;
+		clips[i]={x1=CC.XScale*(dx-dy)+CC.ScreenW/2,
+				 y1=CC.YScale*(dx+dy)+CC.ScreenH/2,
+				 x2=CC.XScale*(dx-dy)+CC.ScreenW/2+w,
+				 y2=CC.YScale*(dx+dy)+CC.ScreenH/2+CC.DefaultFont+1 };
+	end
+
+    local clip=clips[0];
+
+	for i=1,HitXYNum-1 do
+	    clip=MergeRect(clip,clips[i]);
+	end
+
+	local area=(clip.x2-clip.x1)*(clip.y2-clip.y1)
 
     for i=1,15 do           --ÏÔÊ¾ÃüÖĞµÄµãÊı
-	    local t1=lib.GetTime();
-        WarDrawMap(3,i*2);
-        ShowScreen();
-	    local t2=lib.GetTime();
-		if (t2-t1)<CC.Frame then
-	        lib.Delay(CC.Frame-(t2-t1));
+	    local tstart=lib.GetTime();
+        local y_off=i*2+65;
+        if fastdraw==1 and area <CC.ScreenW*CC.ScreenH/2 then
+			local tmpclip={x1=clip.x1, y1=clip.y1-y_off, x2=clip.x2, y2=clip.y2-y_off};
+			tmpclip=ClipRect(tmpclip);
+			if tmpclip~=nil then
+				lib.SetClip(tmpclip.x1,tmpclip.y1,tmpclip.x2,tmpclip.y2);
+				WarDrawMap(0)
+				for j=0,HitXYNum-1 do
+					DrawString(clips[j].x1, clips[j].y1-y_off, HitXY[j][3],
+							   WAR.EffectColor[WAR.Effect],CC.DefaultFont)
+				end
+			end
+		else    --Ãæ»ıÌ«´ó£¬Ö±½ÓÖØ»æ
+			lib.SetClip(0,0,CC.ScreenW,CC.ScreenH);
+			WarDrawMap(0)
+			for j=0,HitXYNum-1 do
+				    DrawString(clips[j].x1, clips[j].y1-y_off, HitXY[j][3],
+ 			                   WAR.EffectColor[WAR.Effect],CC.DefaultFont)
+			end
+		end
+
+		ShowScreen(1);
+		lib.SetClip(0,0,0,0);
+
+        local tend=lib.GetTime();
+		if (tend-tstart)<CC.Frame then
+	        lib.Delay(CC.Frame-(tend-tstart));
 		end
     end
+end
 
-
+    lib.SetClip(0,0,0,0);
     WarDrawMap(0);
     ShowScreen();
 end
@@ -5352,7 +5757,6 @@ function War_WugongHurtLife(emenyid,wugong,level)             --¼ÆËãÎä¹¦ÉËº¦ÉúÃü
     end
     fightnum=fightnum+mywuxue;
 
-
     --¼ÆËã·ÀÓùÁ¦
     local defencenum=JY.Person[eid]["·ÀÓùÁ¦"];
     if JY.Person[eid]["ÎäÆ÷"]>=0 then
@@ -5410,15 +5814,19 @@ end
 --wugong  ÎÒ·½Ê¹ÓÃÎä¹¦
 --·µ»Ø£ºÉËº¦µãÊı
 function War_WugongHurtNeili(enemyid,wugong,level)           --¼ÆËãÎä¹¦ÉËº¦ÄÚÁ¦
-   local pid=WAR.Person[WAR.CurID]["ÈËÎï±àºÅ"];
-   local eid=WAR.Person[enemyid]["ÈËÎï±àºÅ"];
+    local pid=WAR.Person[WAR.CurID]["ÈËÎï±àºÅ"];
+    local eid=WAR.Person[enemyid]["ÈËÎï±àºÅ"];
 
-   local addvalue=JY.Wugong[wugong]["¼ÓÄÚÁ¦" .. level];
-   local decvalue=JY.Wugong[wugong]["É±ÄÚÁ¦" .. level];
+    local addvalue=JY.Wugong[wugong]["¼ÓÄÚÁ¦" .. level];
+    local decvalue=JY.Wugong[wugong]["É±ÄÚÁ¦" .. level];
 
-   AddPersonAttrib(pid,"ÄÚÁ¦×î´óÖµ",Rnd(math.modf(addvalue/2)));
-   AddPersonAttrib(pid,"ÄÚÁ¦",addvalue+Rnd(3)-Rnd(3));
-   return -AddPersonAttrib(eid,"ÄÚÁ¦",-(decvalue+Rnd(3)-Rnd(3)));
+    if addvalue>0 then
+	    if math.modf(addvalue/2)>0 then
+            AddPersonAttrib(pid,"ÄÚÁ¦×î´óÖµ",Rnd(math.modf(addvalue/2)));
+		end
+        AddPersonAttrib(pid,"ÄÚÁ¦",math.abs(addvalue+Rnd(3)-Rnd(3)));
+	end
+    return -AddPersonAttrib(eid,"ÄÚÁ¦",-math.abs(decvalue+Rnd(3)-Rnd(3)));
 end
 
 ---ÓÃ¶¾²Ëµ¥
@@ -5441,8 +5849,6 @@ function War_PoisonHurt(pid,emenyid)     --¼ÆËãµĞÈËÖĞ¶¾µãÊı
     return AddPersonAttrib(emenyid,"ÖĞ¶¾³Ì¶È",v);
 end
 
-
-
 ---½â¶¾²Ëµ¥
 function War_DecPoisonMenu()          ---½â¶¾²Ëµ¥
     WAR.ShowHead=0;
@@ -5452,9 +5858,6 @@ function War_DecPoisonMenu()          ---½â¶¾²Ëµ¥
 	return r;
 end
 
-
-
-
 ---Ò½ÁÆ²Ëµ¥
 function War_DoctorMenu()            ---Ò½ÁÆ²Ëµ¥
     WAR.ShowHead=0;
@@ -5463,7 +5866,6 @@ function War_DoctorMenu()            ---Ò½ÁÆ²Ëµ¥
 	Cls();
 	return r;
 end
-
 
 ---Ö´ĞĞÒ½ÁÆ£¬½â¶¾ÓÃ¶¾
 ---flag=1 ÓÃ¶¾£¬ 2 ½â¶¾£¬3 Ò½ÁÆ 4 °µÆ÷
@@ -5496,7 +5898,6 @@ function War_ExecuteMenu(flag,thingid)            ---Ö´ĞĞÒ½ÁÆ£¬½â¶¾ÓÃ¶¾°µÆ÷
 end
 
 
-
 function War_ExecuteMenu_Sub(x1,y1,flag,thingid)     ---Ö´ĞĞÒ½ÁÆ£¬½â¶¾ÓÃ¶¾°µÆ÷µÄ×Óº¯Êı£¬×Ô¶¯Ò½ÁÆÒ²¿Éµ÷ÓÃ
     local pid=WAR.Person[WAR.CurID]["ÈËÎï±àºÅ"];
     local x0=WAR.Person[WAR.CurID]["×ø±êX"];
@@ -5504,12 +5905,9 @@ function War_ExecuteMenu_Sub(x1,y1,flag,thingid)     ---Ö´ĞĞÒ½ÁÆ£¬½â¶¾ÓÃ¶¾°µÆ÷µÄ
 
     CleanWarMap(4,0);
 
-
 	WAR.Person[WAR.CurID]["ÈË·½Ïò"]=War_Direct(x0,y0,x1,y1);
 
 	SetWarMap(x1,y1,4,1);
-
-    lib.PicLoadFile(string.format(CC.FightPicFile,JY.Person[pid]["Í·Ïñ´úºÅ"]),4);
 
     local emeny=GetWarMap(x1,y1,2);
 	if emeny>=0 then          --ÓĞÈË
@@ -5541,18 +5939,21 @@ function War_ExecuteMenu_Sub(x1,y1,flag,thingid)     ---Ö´ĞĞÒ½ÁÆ£¬½â¶¾ÓÃ¶¾°µÆ÷µÄ
 
 	end
 
+    WAR.EffectXY={};
+	WAR.EffectXY[1]={x1,y1};
+	WAR.EffectXY[2]={x1,y1};
+
 	if flag==1 then
-		War_ShowFight(pid,0,0,30);
+		War_ShowFight(pid,0,0,0,x1,y1,30);
 	elseif flag==2 then
-		War_ShowFight(pid,0,0,36);
+		War_ShowFight(pid,0,0,0,x1,y1,36);
 	elseif flag==3 then
-		War_ShowFight(pid,0,0,0);
+		War_ShowFight(pid,0,0,0,x1,y1,0);
 	elseif flag==4 then
 		if emeny>=0 then
-			War_ShowFight(pid,0,-1,JY.Thing[thingid]["°µÆ÷¶¯»­±àºÅ"]);
+			War_ShowFight(pid,0,-1,0,x1,y1,JY.Thing[thingid]["°µÆ÷¶¯»­±àºÅ"]);
 		end
 	end
-
 
 	for i=0,WAR.PersonNum-1 do
 		WAR.Person[i]["µãÊı"]=0;
@@ -5572,7 +5973,6 @@ function War_ExecuteMenu_Sub(x1,y1,flag,thingid)     ---Ö´ĞĞÒ½ÁÆ£¬½â¶¾ÓÃ¶¾°µÆ÷µÄ
 	return 1;
 
 end
-
 
 
 --ÎïÆ·²Ëµ¥
@@ -5607,6 +6007,7 @@ function War_ThingMenu()            --Õ½¶·ÎïÆ·²Ëµ¥
 		end
     end
 	WAR.ShowHead=1;
+	Cls();
     return rr;
 end
 
@@ -5702,7 +6103,11 @@ end
 
 function War_Auto()             --×Ô¶¯Õ½¶·Ö÷º¯Êı
 
-    lib.Delay(CC.WarAutoDelay);
+	WAR.ShowHead=1;
+	WarDrawMap(0);
+	ShowScreen();
+	lib.Delay(CC.WarAutoDelay);
+	WAR.ShowHead=0;
 
     if CC.AutoWarShowHead==1 then
 	    WAR.ShowHead=1;
@@ -5727,6 +6132,9 @@ function War_Auto()             --×Ô¶¯Õ½¶·Ö÷º¯Êı
     elseif autotype==5 then    --×Ô¼ºÒ½ÁÆ
         War_AutoEscape();
         War_AutoDoctor();
+    elseif autotype==6 then    --³ÔÒ©½â¶¾
+        War_AutoEscape();
+        War_AutoEatDrug(6);
     end
 
     return 0;
@@ -5734,6 +6142,7 @@ end
 
 --Ë¼¿¼ÈçºÎÕ½¶·
 --·µ»Ø£º0 ĞİÏ¢£¬ 1 Õ½¶·£¬2 Ê¹ÓÃÎïÆ·Ôö¼ÓÉúÃü£¬ 3 Ê¹ÓÃÎïÆ·Ôö¼ÓÄÚÁ¦ 4 ³ÔÒ©¼ÓÌåÁ¦£¬ 5 Ò½ÁÆ
+--     6 Ê¹ÓÃÎïÆ·½â¶¾
 
 function War_Think()           --Ë¼¿¼ÈçºÎÕ½¶·
     local pid=WAR.Person[WAR.CurID]["ÈËÎï±àºÅ"];
@@ -5791,6 +6200,21 @@ function War_Think()           --Ë¼¿¼ÈçºÎÕ½¶·
         end
     end
 
+
+    rate=-1;         --½â¶¾µÄ°Ù·Ö±È
+    if JY.Person[pid]["ÖĞ¶¾³Ì¶È"] > CC.PersonAttribMax["ÖĞ¶¾³Ì¶È"] *3/4 then
+        rate=60;
+    elseif JY.Person[pid]["ÖĞ¶¾³Ì¶È"] >CC.PersonAttribMax["ÖĞ¶¾³Ì¶È"] /2 then
+        rate=30;
+    end
+
+    if Rnd(100)<rate then
+        r=War_ThinkDrug(6);       --¿¼ÂÇ½â¶¾
+        if r>=0 then
+            return r;
+        end
+    end
+
     local minNeili=War_GetMinNeiLi(pid);     --ËùÓĞÎä¹¦µÄ×îĞ¡ÄÚÁ¦
 
     if JY.Person[pid]["ÄÚÁ¦"]>=minNeili then
@@ -5803,7 +6227,7 @@ function War_Think()           --Ë¼¿¼ÈçºÎÕ½¶·
 end
 
 --ÄÜ·ñ³ÔÒ©Ôö¼Ó²ÎÊı
---flag=2 ÉúÃü£¬3ÄÚÁ¦£»4ÌåÁ¦
+--flag=2 ÉúÃü£¬3ÄÚÁ¦£»4ÌåÁ¦  6 ½â¶¾
 function War_ThinkDrug(flag)             --ÄÜ·ñ³ÔÒ©Ôö¼Ó²ÎÊı
     local pid=WAR.Person[WAR.CurID]["ÈËÎï±àºÅ"];
     local str;
@@ -5815,15 +6239,25 @@ function War_ThinkDrug(flag)             --ÄÜ·ñ³ÔÒ©Ôö¼Ó²ÎÊı
         str="¼ÓÄÚÁ¦";
     elseif flag==4 then
         str="¼ÓÌåÁ¦";
+    elseif flag==6 then
+        str="¼ÓÖĞ¶¾½â¶¾";
     else
         return r;
+    end
+
+    local function Get_Add(thingid)    --¶¨Òå¾Ö²¿º¯Êı¡£È¡µÃÎïÆ·thingidÔö¼ÓµÄÖµ
+		if flag==6 then
+			return -JY.Thing[thingid][str];   --½â¶¾Îª¸ºÖµ
+		else
+			return JY.Thing[thingid][str];
+		end
     end
 
     if WAR.Person[WAR.CurID]["ÎÒ·½"]==true then
         for i =1, CC.MyThingNum do
             local thingid=JY.Base["ÎïÆ·" ..i];
             if thingid>=0 then
-                if JY.Thing[thingid]["ÀàĞÍ"]==3 and JY.Thing[thingid][str]>0 then
+                if JY.Thing[thingid]["ÀàĞÍ"]==3 and Get_Add(thingid)>0 then
                     r=flag;                     ---ÓĞÔö¼ÓÉúÃüµÄÒ©£¬Ôò¶¯×÷£ºÊ¹ÓÃÎïÆ·¼ÓÉúÃü
                     break;
                 end
@@ -5833,7 +6267,7 @@ function War_ThinkDrug(flag)             --ÄÜ·ñ³ÔÒ©Ôö¼Ó²ÎÊı
         for i =1, 4 do
             local thingid=JY.Person[pid]["Ğ¯´øÎïÆ·" ..i];
             if thingid>=0 then
-                if JY.Thing[thingid]["ÀàĞÍ"]==3 and JY.Thing[thingid][str]>0 then
+                if JY.Thing[thingid]["ÀàĞÍ"]==3 and Get_Add(thingid)>0  then
                     r=flag;                     ---ÓĞÔö¼ÓÉúÃüµÄÒ©£¬Ôò¶¯×÷£ºÊ¹ÓÃÎïÆ·¼ÓÉúÃü
                     break;
                 end
@@ -6376,8 +6810,8 @@ function War_AutoEscape()                --ÌÓÅÜ
 end
 
 
----³ÔÒ©¼ÓÉúÃü
-----flag=2 ÉúÃü£¬3ÄÚÁ¦£»4ÌåÁ¦
+---³ÔÒ©
+----flag=2 ÉúÃü£¬3ÄÚÁ¦£»4ÌåÁ¦  6 ½â¶¾
 function War_AutoEatDrug(flag)          ---³ÔÒ©¼Ó²ÎÊı
     local pid=WAR.Person[WAR.CurID]["ÈËÎï±àºÅ"];
     local life=JY.Person[pid]["ÉúÃü"];
@@ -6400,16 +6834,28 @@ function War_AutoEatDrug(flag)          ---³ÔÒ©¼Ó²ÎÊı
         maxattrib=CC.PersonAttribMax["ÌåÁ¦"];
         shouldadd=maxattrib-JY.Person[pid]["ÌåÁ¦"];
         str="¼ÓÌåÁ¦";
+    elseif flag==6 then
+        maxattrib=CC.PersonAttribMax["ÖĞ¶¾³Ì¶È"];
+        shouldadd=JY.Person[pid]["ÖĞ¶¾³Ì¶È"];
+        str="¼ÓÖĞ¶¾½â¶¾";
     else
         return ;
     end
+
+    local function Get_Add(thingid)     --¶¨ÒåÎïÆ·Ôö¼ÓµÄÖµ
+	    if flag==6 then
+		    return -JY.Thing[thingid][str]/2;   --½â¶¾Îª¸ºÖµ
+		else
+            return JY.Thing[thingid][str];
+		end
+	end
 
     if WAR.Person[WAR.CurID]["ÎÒ·½"]==true then
         local extra=0;
         for i =1, CC.MyThingNum do
             local thingid=JY.Base["ÎïÆ·" ..i];
             if thingid>=0 then
-                local add=JY.Thing[thingid][str];
+                local add=Get_Add(thingid);
                 if JY.Thing[thingid]["ÀàĞÍ"]==3 and add>0 then
                     local v=shouldadd-add;
                     if v<0 then               --¿ÉÒÔ¼ÓÂú, ÓÃÆäËû·½·¨ÕÒºÏÊÊÒ©Æ·
@@ -6429,7 +6875,7 @@ function War_AutoEatDrug(flag)          ---³ÔÒ©¼Ó²ÎÊı
             for i =1, CC.MyThingNum do
                 local thingid=JY.Base["ÎïÆ·" ..i];
                 if thingid>=0 then
-                    local add=JY.Thing[thingid][str];
+                    local add=Get_Add(thingid);
                     if JY.Thing[thingid]["ÀàĞÍ"]==3 and add>0 then
                         local v=add-shouldadd;
                         if v>=0 then               --¿ÉÒÔ¼ÓÂúÉúÃü
@@ -6450,7 +6896,7 @@ function War_AutoEatDrug(flag)          ---³ÔÒ©¼Ó²ÎÊı
         for i =1, 4 do
             local thingid=JY.Person[pid]["Ğ¯´øÎïÆ·" ..i];
             if thingid>=0 then
-                local add=JY.Thing[thingid][str];
+                local add=Get_Add(thingid);
                 if JY.Thing[thingid]["ÀàĞÍ"]==3 and add>0 then
                     local v=shouldadd-add;
                     if v<0 then               --¿ÉÒÔ¼ÓÂúÉúÃü, ÓÃÆäËû·½·¨ÕÒºÏÊÊÒ©Æ·
@@ -6470,7 +6916,7 @@ function War_AutoEatDrug(flag)          ---³ÔÒ©¼Ó²ÎÊı
             for i =1, 4 do
                 local thingid=JY.Person[pid]["Ğ¯´øÎïÆ·" ..i];
                 if thingid>=0 then
-                    local add=JY.Thing[thingid][str];
+                    local add=Get_Add(thingid);
                     if JY.Thing[thingid]["ÀàĞÍ"]==3 and add>0 then
                         local v=add-shouldadd;
                         if v>=0 then               --¿ÉÒÔ¼ÓÂúÉúÃü
@@ -6500,7 +6946,5 @@ function War_AutoDoctor()            --×Ô¶¯Ò½ÁÆ
 
     War_ExecuteMenu_Sub(x1,y1,3,-1);
 end
-
-
 
 

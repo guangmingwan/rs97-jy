@@ -7,10 +7,24 @@ function SetGlobalConst()
 	VK_N=110
 	VK_SPACE=32
 	VK_RETURN=13
-	VK_UP=273
-	VK_DOWN=274
-	VK_LEFT=276
-	VK_RIGHT=275
+
+	SDLK_UP=273
+	SDLK_DOWN=274
+	SDLK_LEFT=276
+	SDLK_RIGHT=275
+
+	if CONFIG.Rotate==0 then
+	    VK_UP=SDLK_UP;
+	    VK_DOWN=SDLK_DOWN;
+	    VK_LEFT=SDLK_LEFT;
+	    VK_RIGHT=SDLK_RIGHT;
+	else           --右转90度
+	    VK_UP=SDLK_RIGHT;
+	    VK_DOWN=SDLK_LEFT;
+	    VK_LEFT=SDLK_UP;
+	    VK_RIGHT=SDLK_DOWN;
+	end
+
 
    -- 游戏中颜色定义
     C_STARTMENU=RGB(132, 0, 4)            -- 开始菜单颜色
@@ -36,12 +50,11 @@ function SetGlobalConst()
    CC={};      --定义游戏中使用的常量，这些可以在修改游戏时修改之
 
    CC.SrcCharSet=0;         --源代码的字符集 0 gb  1 big5，用于转换R×。 如果源码被转换为big5，则应设为1
-   CC.OSCharSet=-1;         --OS 字符集，-1 系统判断，0 GB, 1 Big5
+   CC.OSCharSet=CONFIG.OSCharSet;         --OS 字符集，0 GB, 1 Big5
    CC.FontName=CONFIG.FontName;    --显示字体
 
    CC.ScreenW=CONFIG.Width;          --显示窗口宽高
    CC.ScreenH=CONFIG.Height;
-
 
    --定义记录文件名。S和D由于是固定大小，因此不再定义idx了。
    CC.R_IDXFilename={[0]=CONFIG.DataPath .. "ranger.idx",
@@ -75,15 +88,15 @@ function SetGlobalConst()
 		        CONFIG.DataPath .. "buildx.002",
 				CONFIG.DataPath .. "buildy.002"};
 
-   --各种贴图文件名。这里只给出文件名，扩展名必须为idx/grp
-   CC.MMAPPicFile=CONFIG.DataPath .. "mmap";
-   CC.SMAPPicFile=CONFIG.DataPath .. "smap";
-   CC.WMAPPicFile=CONFIG.DataPath .. "wmap";
-   CC.EffectFile=CONFIG.DataPath .. "eft";
-   CC.FightPicFile=CONFIG.DataPath .. "fight%03d";        --此处为字符串格式，类似于C中printf的格式。
+   --各种贴图文件名。
+   CC.MMAPPicFile={CONFIG.DataPath .. "mmap.idx",CONFIG.DataPath .. "mmap.grp"};
+   CC.SMAPPicFile={CONFIG.DataPath .. "smap.idx",CONFIG.DataPath .. "smap.grp"};
+   CC.WMAPPicFile={CONFIG.DataPath .. "wmap.idx",CONFIG.DataPath .. "wmap.grp"};
+   CC.EffectFile={CONFIG.DataPath .. "eft.idx",CONFIG.DataPath .. "eft.grp"};
+   CC.FightPicFile={CONFIG.DataPath .. "fight%03d.idx",CONFIG.DataPath .. "fight%03d.grp"};  --此处为字符串格式，类似于C中printf的格式。
 
-   CC.HeadPicFile=CONFIG.DataPath .. "hdgrp";
-   CC.ThingPicFile=CONFIG.DataPath .. "thing";
+   CC.HeadPicFile={CONFIG.DataPath .. "hdgrp.idx",CONFIG.DataPath .. "hdgrp.grp"};
+   CC.ThingPicFile={CONFIG.DataPath .. "thing.idx",CONFIG.DataPath .. "thing.grp"};
 
 
    CC.MIDIFile=CONFIG.SoundPath .. "game%02d.mid";
@@ -93,6 +106,9 @@ function SetGlobalConst()
    CC.WarFile=CONFIG.DataPath .. "war.sta";
    CC.WarMapFile={CONFIG.DataPath .. "warfld.idx",
                   CONFIG.DataPath .. "warfld.grp"};
+
+   CC.TalkIdxFile=CONFIG.ScriptPath .. "oldtalk.idx";
+   CC.TalkGrpFile=CONFIG.ScriptPath .. "oldtalk.grp";
 
    --定义记录文件R×结构。  lua不支持结构，无法直接从二进制文件中读取，因此需要这些定义，用table中不同的名字来仿真结构。
    CC.TeamNum=6;          --队伍人数
@@ -330,7 +346,6 @@ function SetGlobalConst()
    CC.XScale=CONFIG.XScale;    --贴图一半的宽高
    CC.YScale=CONFIG.YScale;
 
-
    CC.Frame=50;     --每帧毫秒数
    CC.SceneMoveFrame=CC.Frame*2;           --场景移动帧速，用于场景移动事件
    CC.PersonMoveFrame=CC.Frame*2;          --主角移动速度，用于主角移动事件
@@ -360,8 +375,6 @@ function SetGlobalConst()
         end
     end
 
-
-
     CC.SceneWater={};    --场景人不能进入的贴图
     local tmpWater={ {0x166,0x16a},{0x176,0x17c},{0x1ca,0x1d0},{0x1fa,0x262},{0x332,0x338},
                      {0x346,0x346},{0x3a6,0x3a8},{0x3f8,0x3fe},{0x52c,0x544},};
@@ -380,6 +393,7 @@ function SetGlobalConst()
         end
     end
 
+
     --离队人员列表: {人员id，离队调用函数}      ----如果有新的离队人员加入，直接在这里增加
     CC.PersonExit={{1,950},{2,952},{9,954},{16,956},{17,958},
                    {25,960},{28,962},{29,964},{35,966},{36,968},
@@ -396,6 +410,8 @@ function SetGlobalConst()
     CC.BookStart=144;            --14天书起始物品id
 
     CC.MoneyID=174;              --金钱物品id
+
+    CC.Shemale={ [78]=1,[93]=1}   --需要自宫的书的id
 
    CC.Effect={[0]=9,14,17,9,13,                    --eft.idx/grp贴图各个武功效果贴图个数
                  17,17,17,18,19,
@@ -421,6 +437,7 @@ function SetGlobalConst()
     CC.NewGameSceneID=70;                      --场景ID
     CC.NewGameSceneX=19;                       --场景坐标
     CC.NewGameSceneY=20;
+    CC.NewGameEvent=691;                       --新游戏场景执行事件。如果没有，则看新游戏坐标后面有没有事件。
     CC.NewPersonPic=3445;                      --开始主角pic
 
    CC.PersonAttribMax={};             --人物属性最大值
@@ -473,11 +490,10 @@ function SetGlobalConst()
 
 	--显示主地图和场景地图坐标
 	--如果显示坐标，则会增加cpu占用。机器速度慢的话可能会卡。这个在调试时有用。
+	--注意: 如果设置了CONFIG.FastShowScreen=1，则场景视角范围超出后显示的坐标不正确。
 	CC.ShowXY=0      --0 不显示 1 显示
 
-
 	--以下为控制显示方式的参数
-
 
 	CC.RowPixel=4         -- 每行字的间距像素数
 
@@ -486,12 +502,9 @@ function SetGlobalConst()
 	if CONFIG.Type==0 then      --320*240显示方式
 		CC.DefaultFont=16
 
-		--CC.StartMenuY= 160       --开始菜单Y坐标
 		CC.StartMenuFontSize=16  --开始菜单字号
 
-		--CC.NewGameY= 160         --新游戏属性显示Y坐标
 		CC.NewGameFontSize =16   --新游戏属性选择字号
-
 
 		CC.MainMenuX=10;         --主菜单开始坐标
 		CC.MainMenuY=10;
@@ -501,14 +514,11 @@ function SetGlobalConst()
 
         CC.PersonStateRowPixel= 1;    --显示人物状态行间距像素
 
-        CC.AutoWarShowHead=0;          --自动战斗是是否一直显示头像
 	elseif CONFIG.Type==1 then  --640*480显示方式
 		CC.DefaultFont=24;
 
-		--CC.StartMenuY= 300;
 		CC.StartMenuFontSize=32;
 
-		--CC.NewGameY= 300;
 		CC.NewGameFontSize =24;
 
 		CC.MainMenuX=10;
@@ -519,7 +529,6 @@ function SetGlobalConst()
 
         CC.PersonStateRowPixel= 4;  --显示人物状态行间距像素
 
-		CC.AutoWarShowHead=1;          --自动战斗是是否一直显示头像
 	end
 
     CC.StartMenuY=CC.ScreenH-3*(CC.StartMenuFontSize+CC.RowPixel)-20;
@@ -562,6 +571,35 @@ function SetGlobalConst()
 	end
 
 
+    --场景视角范围。超出此范围则只移动主角，场景不移动了。也就是主角不在屏幕中央了
+	if CONFIG.Type==0 then      --320*240显示方式
+        CC.SceneXMin=12
+        CC.SceneYMin=12
+        CC.SceneXMax=45;
+        CC.SceneYMax=45;
+	elseif CONFIG.Type==1 then
+        CC.SceneXMin=11
+        CC.SceneYMin=11
+        CC.SceneXMax=47;
+        CC.SceneYMax=47;
+	end
+
+	CC.SceneFlagPic={2749,2846}    --场景贴图中旗帜的贴图编号。
+
+	if CONFIG.FastShowScreen==0 then
+        CC.ShowFlag=1;                 --0 不显示旗帜动画 1 显示。不显示旗帜动画可以增加场景中主角不动时的显示速度
+		if CONFIG.Type==1 then
+            CC.AutoWarShowHead=1;          --1 战斗时一直显示头像 0 不显示。如果设为1，则战斗时将重绘整个屏幕，会降低显示速度。
+		else
+		    CC.AutoWarShowHead=0;
+		end
+	else
+        CC.ShowFlag=0;
+		CC.AutoWarShowHead=0;
+	end
+
+    CC.LoadThingPic=1           --读取物品贴图方式 0 从mmap/smap/wmap中读取  1 读取独立的thing.idx/grp
+	CC.StartThingPic=0          --物品贴图在mmap/smap/wmap中的起始编号。CC.LoadThingPic=0有效
 
 
 end

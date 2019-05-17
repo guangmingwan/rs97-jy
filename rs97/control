@@ -1,0 +1,10 @@
+Package: gmu
+Version: 20190202
+Description: gmu
+Section: apps
+Priority: optional
+Maintainer: jbanes
+Architecture: mipsel
+Homepage: https://github.com/jbanes/rs97-commander
+Depends:
+Source: https://github.com/jbanes/rs97-commander

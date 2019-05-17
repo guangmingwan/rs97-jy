@@ -1,23 +1,17 @@
  
-// luaÖĞµ÷ÓÃµÄC API½Ó¿Ú
+// luaä¸­è°ƒç”¨çš„C APIæ¥å£
 
 
 
 #ifndef __LUAFUN_H
 #define __LUAFUN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 // luafun.c
-
-int Lua_Main(void);
-
-int Lua_Config(void);
-
-int getfield(lua_State *pL,const char *key);
-
-
-int getfieldstr(lua_State *pL,const char *key,char *str);
-
 
 
  int HAPI_Debug(lua_State *pL);
@@ -98,12 +92,11 @@ int HAPI_CleanWarMap(lua_State *pL);
 
 int HAPI_DrawWarMap(lua_State *pL);
 
-int HAPI_DrawWarNum(lua_State *pL);
 
 
-// ¶ş½øÖÆÊı×éº¯Êı
+// äºŒè¿›åˆ¶æ•°ç»„å‡½æ•°
 
-/*  lua µ÷ÓÃĞÎÊ½£º(×¢Òâ£¬Î»ÖÃ¶¼ÊÇ´Ó0¿ªÊ¼
+/*  lua è°ƒç”¨å½¢å¼ï¼š(æ³¨æ„ï¼Œä½ç½®éƒ½æ˜¯ä»0å¼€å§‹
      handle=Byte_create(size);
 	 Byte_release(h);
 	 Byte_loadfile(h,filename,start,end);
@@ -138,7 +131,12 @@ int HAPI_InitCache(lua_State *pL);
 int HAPI_LoadPic(lua_State *pL);
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 
 #endif
+
+
