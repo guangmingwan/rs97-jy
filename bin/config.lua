@@ -59,8 +59,8 @@ CONFIG.SMapAddY=16;
 CONFIG.WMapAddX=2;
 CONFIG.WMapAddY=18;
 
-CONFIG.MusicVolume=24;            --设置播放音乐的音量(0-128)
-CONFIG.SoundVolume=32;            --设置播放音效的音量(0-128)
+CONFIG.MusicVolume=128;            --设置播放音乐的音量(0-128)
+CONFIG.SoundVolume=128;            --设置播放音效的音量(0-128)
 
 local LargeMemory=1;             --设置内存使用方式 1 多使用内存，0 少使用内存
 

@@ -9,6 +9,7 @@ readelf -d ../bin/sdljy.bin|grep runpath
 cp sdljy.dge ipkg/media/mmcblk1p1/games/sdljy/sdljy.dge
 cp sdljy.png ipkg/media/mmcblk1p1/games/sdljy/sdljy.png
 cp -R ../bin/* ipkg/media/mmcblk1p1/games/sdljy/
+cp -R freepats ipkg/media/mmcblk1p1/games/sdljy/
 
 cp -R libs.dingux ipkg/media/mmcblk1p1/games/sdljy/
 
