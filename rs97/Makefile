@@ -6,17 +6,19 @@ OBJ =  ../src/charset.o \
         ../src/sdlfun.o
 
 HEADERS =  config.h list.h luafun.h
-
-CC = mipsel-linux-gcc
-CXX = mipsel-linux-g++
+CROSS_COMPILE?=mipsel-linux-
+PLATFORM?=rs97
+include $(PLATFORM).mk
+CC = $(CROSS_COMPILE)gcc
+CXX = $(CROSS_COMPILE)g++
 
 TARGET = ../bin/sdljy.bin
 
 BASEFLAGS = -g3 -D_DEBUG=1
 #BASEFLAGS = -s -O3
 
-CFLAGS = ${BASEFLAGS} $(shell /opt/buildroot-2018.02.11/output/host/mipsel-buildroot-linux-uclibc/sysroot/usr/bin/sdl-config --cflags) -I/usr/include/lua5.1 -I/usr/include/smpeg
-LDFLAGS = ${BASEFLAGS} $(shell /opt/buildroot-2018.02.11/output/host/mipsel-buildroot-linux-uclibc/sysroot/usr/bin/sdl-config --libs) -lSDL_image -lSDL_mixer -lSDL_ttf -llua
+#CFLAGS = ${BASEFLAGS} $(shell /opt/buildroot-2018.02.11/output/host/mipsel-buildroot-linux-uclibc/sysroot/usr/bin/sdl-config --cflags) -I/usr/include/lua5.1 -I/usr/include/smpeg
+#LDFLAGS = ${BASEFLAGS} $(shell /opt/buildroot-2018.02.11/output/host/mipsel-buildroot-linux-uclibc/sysroot/usr/bin/sdl-config --libs) -lSDL_image -lSDL_mixer -lSDL_ttf -llua
 
 #CFLAGS += -DHAS_SDL_MPEG=1
 #LDFLAGS += -lsmpeg
@@ -24,7 +26,7 @@ LDFLAGS = ${BASEFLAGS} $(shell /opt/buildroot-2018.02.11/output/host/mipsel-buil
 all : ${TARGET}
 
 ${TARGET} : ${OBJ}
-	${CC} ${LDFLAGS} -o ${TARGET} ${OBJ}
+	${CC} -o ${TARGET} ${OBJ} ${LDFLAGS}
 
 clean:
 	rm -f ../src/*.o ${TARGET}
