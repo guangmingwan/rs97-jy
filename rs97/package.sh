@@ -2,16 +2,18 @@
 
 mkdir -p bin
 find . -name ".DS_Store" -exec rm {} \;  
-rm -rf ipkg/media/mmcblk1p1/games/sdljy/*
+rm -rf ipkg/media/mmcblk0p3/games/sdljy/*
 patchelf ../bin/sdljy.bin --set-rpath '/home/retrofw/games/sdljy/libs.dingux'
 
 readelf -d ../bin/sdljy.bin|grep runpath
-cp sdljy.dge ipkg/media/mmcblk1p1/games/sdljy/sdljy.dge
-cp sdljy.png ipkg/media/mmcblk1p1/games/sdljy/sdljy.png
-cp -R ../bin/* ipkg/media/mmcblk1p1/games/sdljy/
-cp -R freepats ipkg/media/mmcblk1p1/games/sdljy/
+cp sdljy.dge ipkg/media/mmcblk0p3/games/sdljy/
+cp sdljy.png ipkg/media/mmcblk0p3/games/sdljy/
+cp freepats.cfg ipkg/media/mmcblk0p3/games/sdljy/
+cp timidity.cfg ipkg/media/mmcblk0p3/games/sdljy/
+cp -R ../bin/* ipkg/media/mmcblk0p3/games/sdljy/
+cp -R freepats ipkg/media/mmcblk0p3/games/sdljy/
 
-cp -R libs.dingux ipkg/media/mmcblk1p1/games/sdljy/
+cp -R libs.dingux ipkg/media/mmcblk0p3/games/sdljy/
 
 
 cd ipkg
