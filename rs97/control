@@ -1,10 +1,10 @@
-Package: gmu
+Package: jy
 Version: 20190202
-Description: gmu
+Description: jy
 Section: apps
 Priority: optional
-Maintainer: jbanes
+Maintainer: netwan
 Architecture: mipsel
-Homepage: https://github.com/jbanes/rs97-commander
+Homepage: https://github.com/guangmingwan/rs97-jy
 Depends:
-Source: https://github.com/jbanes/rs97-commander
+Source: https://github.com/guangmingwan/rs97-jy
