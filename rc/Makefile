@@ -6,8 +6,8 @@ OBJ =  ../src/charset.o \
         ../src/sdlfun.o
 
 HEADERS =  config.h list.h luafun.h
-CROSS_COMPILE?=mipsel-linux-
-PLATFORM?=rs97
+CROSS_COMPILE?=
+PLATFORM?=rc
 include $(PLATFORM).mk
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
