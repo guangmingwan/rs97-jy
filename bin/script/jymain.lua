@@ -338,6 +338,7 @@ function Game_MMap()      --主地图
 
     local direct = -1;
     local keypress = lib.GetKey();
+    lib.Debug(string.format("keypress %d", keypress));
     if keypress ~= -1 then
 	    JY.MyTick=0;
 		if keypress==VK_ESCAPE then
@@ -2064,6 +2065,7 @@ end
 --         <0 选中的菜单项，调用函数要求退出父菜单，这个用于退出多层菜单
 
 function ShowMenu(menuItem,numItem,numShow,x1,y1,x2,y2,isBox,isEsc,size,color,selectColor)     --通用菜单函数
+    lib.Debug(string.format("ShowMenu"));
     local w=0;
     local h=0;   --边框的宽高
     local i=0;
@@ -2143,6 +2145,7 @@ function ShowMenu(menuItem,numItem,numShow,x1,y1,x2,y2,isBox,isEsc,size,color,se
 	    ShowScreen();
 		keyPress=WaitKey();
 		lib.Delay(100);
+		 lib.Debug(string.format("keypress %d", keyPress));
 		if keyPress==VK_ESCAPE then                  --Esc 退出
 		    if isEsc==1 then
 		        break;
@@ -2191,6 +2194,7 @@ end
 
 --横向显示菜单，参数和ShowMenu一样
 function ShowMenu2(menuItem,numItem,numShow,x1,y1,x2,y2,isBox,isEsc,size,color,selectColor)     --通用菜单函数
+    lib.Debug(string.format("ShowMenu2"));
     local w=0;
     local h=0;   --边框的宽高
     local i=0;

@@ -42,7 +42,7 @@ int g_LoadMMapType=0;          //是否全部加载M文件
 int g_LoadMMapScope=0;       
 int g_PreLoadPicGrp=1;      //是否预先加载贴图文件的grp
 
-static int IsDebug=0;         //是否打开跟踪文件
+static int IsDebug=1;         //是否打开跟踪文件
 
 static char JYMain_Lua[255];  //lua主函数
 
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 {
 	lua_State *pL_main;
 
-	remove(DEBUG_FILE);
+	//remove(DEBUG_FILE);
     freopen(ERROR_FILE,"wt",stderr);    //设置stderr输出到文件
 
 	//初始化lua

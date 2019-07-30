@@ -16,8 +16,8 @@ CONFIG.Type= 0;
 CONFIG.Rotate=0;         --屏幕是否旋转  0 不旋转 1 右转90度。CONFIG.Width/Height仍然为未旋转前的屏幕宽高
                          --目前旋转暂时不支持播放mpeg
 
-CONFIG.Width  = 320;       -- 游戏图形窗口宽
-CONFIG.Height = 240;      -- 游戏图形窗口宽
+CONFIG.Width  = 480;       -- 游戏图形窗口宽
+CONFIG.Height = 320;      -- 游戏图形窗口宽
 
 CONFIG.bpp  =16          -- 全屏时像素色深，一般为16或者32。在窗口模式时直接采用当前屏幕色深，此设置无效
                          -- 不支持8位色深。为提高速度，建议使用16位色深。

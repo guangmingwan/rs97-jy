@@ -1,8 +1,7 @@
- 
-
 // SDL 相关函数
 
 #include "jymain.h"
+static SDL_Joystick     *g_pJoy = NULL;
  
 static Mix_Music *currentMusic=NULL;         //播放音乐数据，由于同时只播放一个，用一个变量
 
@@ -104,13 +103,34 @@ int InitSDL(void)
 	int i;
 	char tmpstr[255];
    
-	r=SDL_Init(SDL_INIT_VIDEO);
+	r=SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
     if( r < 0 ) {
         JY_Error(
                 "Couldn't initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
 
+	if (SDL_NumJoysticks() > 0)
+	{
+		JY_Debug("Found Joysticks %d\n", SDL_NumJoysticks());
+		JY_Debug("The names of the joysticks are:\n");
+		
+    for( i=0; i < SDL_NumJoysticks(); i++ ) 
+    {
+        JY_Debug("    %s\n", SDL_JoystickName(i));
+    }
+		SDL_JoystickEventState(SDL_ENABLE);
+		g_pJoy = SDL_JoystickOpen(0);
+	
+		if (g_pJoy != NULL)
+		{
+			JY_Debug("    Open ok for %s\n", SDL_JoystickName(0));
+		}
+	}
+	else {
+		JY_Debug("no found joysticks\n");
+
+	}
     //atexit(SDL_Quit);    可能有问题，屏蔽掉
  
     SDL_VideoDriverName(tmpstr, 255);
@@ -159,7 +179,11 @@ int ExitSDL(void)
 	Mix_CloseAudio();
 
     JY_LoadPicture("",0,0);    // 释放可能加载的图片表面
-    SDL_Quit();
+    if(g_pJoy) {
+    	SDL_JoystickClose(g_pJoy);
+    }
+	SDL_Quit();
+    
     return 0;
 }
 
@@ -477,20 +501,121 @@ int JY_PlayWAV(const char *filename)
 	return 0;
 }
 
-
+int repeatKey = -1;
 // 得到前面按下的字符
 int JY_GetKey()
 {
     SDL_Event event;
-	int keyPress=-1;
+    int keyPress= repeatKey;
     while(SDL_PollEvent(&event)){   
-		switch(event.type){   
+		switch(event.type){  
+	case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
+    if ( ( event.jaxis.value < -3200 ) || (event.jaxis.value > 3200 ) ) 
+    {
+      /* code goes here */
+	if( event.jaxis.axis == 0) 
+        {
+            /* Left-right movement code goes here */	
+		JY_Debug(" Left-right\n");
+		if( event.jaxis.value < -3200 ) {
+			repeatKey = keyPress = SDLK_LEFT;
+		}
+		else if( event.jaxis.value > 3200 ) {
+			repeatKey = keyPress = SDLK_RIGHT;
+		}
+	
+        }
+
+        if( event.jaxis.axis == 1) 
+        {
+            /* Up-Down movement code goes here */
+		JY_Debug("Up-Down\n");
+		if( event.jaxis.value < -3200 ) { 
+                        repeatKey = keyPress = SDLK_UP;
+                }
+                else if( event.jaxis.value > 3200 ) {
+                         repeatKey = keyPress = SDLK_DOWN;
+                }
+        }
+    }
+	else {
+	repeatKey = keyPress = -1;
+	}
+    break;
+
+case SDL_JOYHATMOTION:
+	if(  event.jhat.value == 0 ) {
+		repeatKey = keyPress = -1;
+	}
+	if ( event.jhat.value & SDL_HAT_UP )
+    {
+        /* Do up stuff here */
+	repeatKey = keyPress = SDLK_UP;
+    }
+
+    else if ( event.jhat.value & SDL_HAT_LEFT )
+    {
+        /* Do left stuff here */
+	repeatKey = keyPress = SDLK_LEFT;
+    }
+
+    else if ( event.jhat.value & SDL_HAT_RIGHT )
+    {
+        /* Do right and down together stuff here */
+	repeatKey = keyPress = SDLK_RIGHT;
+    }
+else	if ( event.jhat.value & SDL_HAT_DOWN )
+    {   
+        /* Do right and down together stuff here */
+        repeatKey = keyPress = SDLK_DOWN;
+    }
+	else if( event.jhat.value & SDL_HAT_CENTERED ) {
+	repeatKey = keyPress = -1;
+}
+
+break;
+	case SDL_JOYBUTTONDOWN:  /* Handle Joystick Button Presses */
+    if ( event.jbutton.button == 0 ) //x
+    {
+        /* code goes here */
+	
+    }
+	if ( event.jbutton.button == 1 ) //a
+    {
+        /* code goes here */
+	keyPress = SDLK_RETURN;
+	repeatKey = -1;
+
+    }
+if ( event.jbutton.button == 2 ) //b
+    {
+        /* code goes here */
+	keyPress = SDLK_ESCAPE;
+	repeatKey = -1;
+
+    }
+if ( event.jbutton.button == 3 ) //y
+    {
+        /* code goes here */
+
+    }
+	JY_Debug("event.jbutton.button %d", event.jbutton.button);
+    break;
+	case SDL_JOYBUTTONUP:
+	repeatKey = keyPress = -1;
+        break; 
         case SDL_KEYDOWN:  
             keyPress=event.key.keysym.sym;
             break;
         case SDL_MOUSEMOTION:
             break;
         default: 
+		/*if(keyPress == SDLK_LEFT || keyPress == SDLK_RIGHT || keyPress == SDLK_UP || keyPress == SDLK_DOWN) {
+		SDL_Delay(100);
+		}
+		else {
+		SDL_Delay(250);
+		}*/
             break;
         }
 	}	
