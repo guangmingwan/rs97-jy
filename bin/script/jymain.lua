@@ -338,7 +338,7 @@ function Game_MMap()      --Ö÷µØÍ¼
 
     local direct = -1;
     local keypress = lib.GetKey();
-    lib.Debug(string.format("keypress %d", keypress));
+    --lib.Debug(string.format("keypress %d", keypress));
     if keypress ~= -1 then
 	    JY.MyTick=0;
 		if keypress==VK_ESCAPE then
@@ -2145,7 +2145,7 @@ function ShowMenu(menuItem,numItem,numShow,x1,y1,x2,y2,isBox,isEsc,size,color,se
 	    ShowScreen();
 		keyPress=WaitKey();
 		lib.Delay(100);
-		 lib.Debug(string.format("keypress %d", keyPress));
+		-- lib.Debug(string.format("keypress %d", keyPress));
 		if keyPress==VK_ESCAPE then                  --Esc ÍË³ö
 		    if isEsc==1 then
 		        break;
