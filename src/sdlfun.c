@@ -109,7 +109,6 @@ int InitSDL(void)
                 "Couldn't initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
-	SDL_ShowCursor(SDL_DISABLE);
 	if (SDL_NumJoysticks() > 0)
 	{
 		JY_Debug("Found Joysticks %d\n", SDL_NumJoysticks());
@@ -217,6 +216,8 @@ int InitGame(void)
 
 	if(g_Surface==NULL)
 		JY_Error("Cannot set video mode");
+	
+    SDL_ShowCursor(SDL_DISABLE);
 
     Init_Cache();
 	
